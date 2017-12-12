@@ -2,8 +2,11 @@
 
 class NeuronBase:
   def __init__(self):
-    pass
+    self.initialize()
 
-  def step(self):
-    pass
+  def initialize(self):
+    self.time = 0.0
+
+  def step(self, dt):
+    self.time += dt
 
