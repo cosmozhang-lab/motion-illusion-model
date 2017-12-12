@@ -1,0 +1,39 @@
+       --------------------------------------------------
+           Parameters for Integrate and Fire Neurons
+       --------------------------------------------------
+
+        dt	tfinal	tstep1	tstep2	tstep3	tstep4	iseed
+         0.00001 105.0	 1.	 1000.0	 1000.0	 1000.0	 01	22594 51967
+
+	Gleak	Vthres	Vreset	Vexcit	Vinhib
+	 50.0	 1.0	 0.0 4.66666667	 -.66666667	1.0	0.2
+
+	taue				taui		tlexc	tlinh
+	 0.001	 0.005	 0.002	 0.080	 0.001	 0.010	 2000.	 1000.
+
+	See	Sei	Sie	Sii	Cee	Cei	Cie	Cii
+	 2.0	 2.0	 6.5	 2.0	 7.0	 2.0	 7.9	 2.0
+
+	frtlgn	g0	iscale	pdriven	efs	efc	xfs	xfc
+	 4500.	 45.0	 1	 0.5 	0.5	 0.5	 0.0	 0.0	
+
+	frtexc	frtinh	ce	ci	tstart	twindow	twindow2
+	  0.0	  300.0	 0.2	 0.4	 10000.0 100.0	 1.0
+
+	trefe	trefi	ts0	omega	theta	eps	icont
+	 0.003	 0.001	 1.0	 8.0	 1.5708	 1.5	 0	0.25	0.25
+
+	ntheta	nphi	tdurat	iblank	ndump
+	 18	 8	 0.010	 0	 100
+
+	iscale: how does S scale w/ pconnect?
+	  0  : synaptic strength scales as S/p
+	  else : synaptic strength independent of p
+	efracS: fraction of Simple cell receptors w/ 2nd time course
+	efracC: fraction of Complex cell receptors w/ 2nd time course
+	pdriven: fraction of Simple Cells
+	Uee : MF self-excitation 
+	Vee : MF -> I&F excitation
+	Tee : I&F -> MF excitation
+	twindow: dump last xxx seconds to spikes.dat
+	twindow2: dump last xxx seconds to fort.7xxxx (intracell data)
