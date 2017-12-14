@@ -4,46 +4,7 @@ from largescale.src.neuron import NeuronGroup
 import numpy as np
 import pyopencl as cl
 import largescale.src.support.cl_support as clspt
-import v1_program as program
-
-# class V1Neuron (Neuron):
-#   # Neuron type definations
-#   T_EXCITATORY = 1 # "V1NeuronType_Excitatory"
-#   T_INHIBITORY = 2 # "V1NeuronType_Inhibitory"
-#   T_EXC = T_EXCITATORY
-#   T_E = T_EXCITATORY
-#   T_INH = T_INHIBITORY
-#   T_I = T_INHIBITORY
-
-#   def __init__(self, config=None,
-#         ntype=None,
-#         lgn=NeuronGroup(),
-#         v1=NeuronGroup()
-#       ):
-#     if not config is None:
-#       if "ntype" in config: ntype = config["ntype"]
-#       if "lgn"   in config: lgn   = config["lgn"]
-#       if "v1"    in config: v1    = config["v1"]
-#     Neuron.__init__(self)
-#     self.ntype = ntype
-#     self.lgn = lgn
-#     self.v1 = v1
-
-#   def initialize(self):
-#     Neuron.initialize(self)
-#     self.g_nmda = 0.0
-#     self.g_ampa = 0.0
-#     self.g_gaba1 = 0.0
-#     self.g_gaba2 = 0.0
-#     self.v = 0.0
-
-#   def step(self, t, dt):
-#     Neuron.step(self, t, dt)
-
-#   def isExcitatory(self):
-#     return self.ntype == V1Neuron.T_EXCITATORY
-#   def isInhibitory(self):
-#     return self.ntype == V1Neuron.T_INHIBITORY
+import largescale.src.neuron.program as program
 
 T_EXCITATORY = 1 # "V1NeuronType_Excitatory"
 T_INHIBITORY = 2 # "V1NeuronType_Inhibitory"
@@ -52,7 +13,8 @@ T_E = T_EXCITATORY
 T_INH = T_INHIBITORY
 T_I = T_INHIBITORY
 
-class V1NeuronGroup (NeuronGroup):
+# V1 neuron group that directly receive stimulus (skipped LGN)
+class V1DirectNeuronGroup (NeuronGroup):
   # config:
   #     ** inherit from NeuronGroup.config
   #     type: neuron types as np.array(uint8)
@@ -107,7 +69,6 @@ class V1NeuronGroup (NeuronGroup):
   def step(self, t, dt):
     NeuronGroup.step(self, t, dt)
     queue = clspt.queue()
-    program.chain2.set_scalar_arg_dtypes([None, None, np.double, np.double, np.double])
     program.chain2(queue, (self.nneurons,), None, self.g_gaba1.buf_dev, self.s_gaba1.buf_dev, self.tau_rise_gaba1, self.tau_damp_gaba1, dt)
     program.chain2(queue, (self.nneurons,), None, self.g_gaba2.buf_dev, self.s_gaba2.buf_dev, self.tau_rise_gaba2, self.tau_damp_gaba2, dt)
     program.chain2(queue, (self.nneurons,), None, self.g_ampa.buf_dev, self.s_ampa.buf_dev, self.tau_rise_ampa, self.tau_damp_ampa, dt)

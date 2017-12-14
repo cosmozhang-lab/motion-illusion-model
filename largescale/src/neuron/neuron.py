@@ -3,31 +3,6 @@
 import numpy as np
 import largescale.src.support.cl_support as clspt
 
-# class Neuron:
-#   def __init__(self, coor=(0,0)):
-#     self._coor = coor
-#     self.x = self._coor[0] if len(self._coor) > 0 else 0
-#     self.y = self._coor[1] if len(self._coor) > 1 else 0
-#     self.z = self._coor[2] if len(self._coor) > 2 else 0
-#     self.initialize()
-
-#   def initialize(self):
-#     self.last_spike_time = None
-
-#   def step(self, t, dt):
-#     pass
-
-# class NeuronGroup:
-#   def __init__(self, neurons=[]):
-#     self.neurons = neurons
-
-#   def at(idx):
-#     if len(self.neurons) <= idx:
-#       raise "Cannot get the neuron at %d: Index out of bounds." % idx
-#     return self.neurons[idx]
-
-
-
 class NeuronGroup:
   # config:
   #     coor: a tuple that contains (x,y,z) coordinates, each as a np.array

@@ -1,7 +1,7 @@
 # Unit testings
 
 def test_v1():
-  from largescale.src.v1 import V1NeuronGroup
+  from largescale.src.v1 import V1DirectNeuronGroup
   import numpy as np
   config = {
     "tau_rise_gaba1": 0.1,
@@ -13,7 +13,7 @@ def test_v1():
     "tau_rise_nmda": 0.1,
     "tau_damp_nmda": 0.1
   }
-  n = V1NeuronGroup((288,144), config = config)
+  n = V1DirectNeuronGroup((288,144), config = config)
   import time
   t = time.time()
   dt = 0.001

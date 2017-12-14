@@ -5,7 +5,7 @@ import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]
 
-program_file = open( os.path.join(thisdir, "v1_program.cl") )
+program_file = open( os.path.join(thisdir, "program.cl") )
 program = cl.Program(clspt.context(), program_file.read()).build()
 program_file.close()
 
