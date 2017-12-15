@@ -1,9 +1,11 @@
 # Unit testings
 
+from largescale.src.support import CommonConfig
+
 def test_v1():
   from largescale.src.v1 import V1DirectNeuronGroup
   import numpy as np
-  config = {
+  config = CommonConfig({
     "tau_rise_gaba1": 0.1,
     "tau_damp_gaba1": 0.1,
     "tau_rise_gaba2": 0.1,
@@ -12,7 +14,7 @@ def test_v1():
     "tau_damp_ampa": 0.1,
     "tau_rise_nmda": 0.1,
     "tau_damp_nmda": 0.1
-  }
+  })
   n = V1DirectNeuronGroup((288,144), config = config)
   import time
   t = time.time()
@@ -63,4 +65,33 @@ def test_cl():
   cl.enqueue_barrier(queues[-1])
   print time.time() - t
 
-test_v1()
+def test_geo():
+  import largescale.src.support.geometry as geo
+  import time
+  t = time.time()
+  coors = geo.gen_coordinates((288,144))
+  print coors[0][:,0]
+  print coors[1][0,:]
+  print "Time used: ", time.time() - t
+
+def test_dfsti():
+  from largescale.src.stimulus import DFStimulus
+  import numpy as np
+  import cv2
+  config = CommonConfig({
+    "orientation": np.pi / 6,
+    "frequency": 0.01,
+    "speed": 100.0,
+    "phase": 0.0
+  })
+  sti = DFStimulus((288,144), config)
+  t = 0
+  dt = 1
+  for i in xrange(10):
+    im = sti.get(t)
+    im = ((im + 1.0) * 0.5 * 255.0).astype(np.uint8)
+    filename = "/home/share/work/outputs/df_%d.tiff" % i
+    cv2.imwrite(filename, im)
+    t = t + dt
+
+test_dfsti()
