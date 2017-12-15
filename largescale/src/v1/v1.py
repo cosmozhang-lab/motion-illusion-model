@@ -74,19 +74,12 @@ class V1DirectNeuronGroup (NeuronGroup):
   def step(self, t, dt):
     NeuronGroup.step(self, t, dt)
     queue = clspt.queue()
-    program.chain2(queue, (self.nneurons,), None, self.g_lgn_on.buf_dev, self.s_lgn_on.buf_dev, self.tau_rise_lgn_on, self.tau_damp_lgn_on, dt)
-    program.chain2(queue, (self.nneurons,), None, self.g_lgn_off.buf_dev, self.s_lgn_off.buf_dev, self.tau_rise_lgn_off, self.tau_damp_lgn_off, dt)
-    program.chain2(queue, (self.nneurons,), None, self.g_gaba1.buf_dev, self.s_gaba1.buf_dev, self.tau_rise_gaba1, self.tau_damp_gaba1, dt)
-    program.chain2(queue, (self.nneurons,), None, self.g_gaba2.buf_dev, self.s_gaba2.buf_dev, self.tau_rise_gaba2, self.tau_damp_gaba2, dt)
-    program.chain2(queue, (self.nneurons,), None, self.g_ampa.buf_dev, self.s_ampa.buf_dev, self.tau_rise_ampa, self.tau_damp_ampa, dt)
-    program.chain2(queue, (self.nneurons,), None, self.g_nmda.buf_dev, self.s_nmda.buf_dev, self.tau_rise_nmda, self.tau_damp_nmda, dt)
+    program.chain2(queue, self.g_lgn_on, self.s_lgn_on, self.tau_rise_lgn_on, self.tau_damp_lgn_on, dt)
+    program.chain2(queue, self.g_lgn_off, self.s_lgn_off, self.tau_rise_lgn_off, self.tau_damp_lgn_off, dt)
+    program.chain2(queue, self.g_gaba1, self.s_gaba1, self.tau_rise_gaba1, self.tau_damp_gaba1, dt)
+    program.chain2(queue, self.g_gaba2, self.s_gaba2, self.tau_rise_gaba2, self.tau_damp_gaba2, dt)
+    program.chain2(queue, self.g_ampa, self.s_ampa, self.tau_rise_ampa, self.tau_damp_ampa, dt)
+    program.chain2(queue, self.g_nmda, self.s_nmda, self.tau_rise_nmda, self.tau_damp_nmda, dt)
 
   def update(self):
-    self.g_gaba1.update()
-    self.s_gaba1.update()
-    self.g_gaba2.update()
-    self.s_gaba2.update()
-    self.g_ampa.update()
-    self.s_ampa.update()
-    self.g_nmda.update()
-    self.s_nmda.update()
+    pass

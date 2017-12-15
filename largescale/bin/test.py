@@ -27,18 +27,19 @@ def test_v1():
 
 def test_cl():
   import pyopencl as cl
-  import largescale.src.cl_support as clspt
+  import largescale.src.support.cl_support as clspt
   import numpy as np
   import time
-  n = 100000
+  n = 3000000
   ctx = clspt.context()
   prg = cl.Program(ctx, """
+  inline double m_add(double a, double b) {
+    return a + b;
+  }
   __kernel void sum(__global const double *a_g, __global const double *b_g, __global double *res_g)
   {
     int gid = get_global_id(0);
-    res_g[gid] = a_g[gid] + b_g[gid];
-    for (int i = 0; i < 1000000; i++)
-      res_g[gid] += a_g[gid] + b_g[gid];
+    res_g[gid] = m_add(a_g[gid], b_g[gid]); //a_g[gid] + b_g[gid];
   }
   """).build()
   mf = cl.mem_flags
@@ -46,7 +47,7 @@ def test_cl():
   a_gs = []
   b_gs = []
   res_gs = []
-  ni = 2
+  ni = 1
   for i in xrange(ni):
     a_np = np.random.rand(n).astype(np.double)
     b_np = np.random.rand(n).astype(np.double)
@@ -94,4 +95,32 @@ def test_dfsti():
     cv2.imwrite(filename, im)
     t = t + dt
 
-test_dfsti()
+def test_conv2d():
+  import largescale.src.support.convolution as conv
+  import largescale.src.support.cl_support as clspt
+  import time
+  import numpy as np
+  import cv2
+  im = cv2.imread("/home/share/work/outputs/testimg.jpg")
+  im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+  imv = clspt.Variable(im.astype(np.double))
+  imo = clspt.Variable(np.empty_like(im).astype(np.double))
+  kernels = [
+    np.array([[1,0,-1],[0,0,0],[-1,0,1]]).astype(np.double),
+    np.array([[-1,0,1],[0,0,0],[1,0,-1]]).astype(np.double),
+    np.zeros([10,10]).astype(np.double) + 1.0/100.0
+  ]
+  nkernels = len(kernels)
+  kernels = conv.Conv2DKernelPool(kernels)
+  ikernels = np.zeros_like(im).astype(np.int32)
+  for i in xrange(im.shape[0]):
+    ikernels[i,:] = int(i * nkernels / im.shape[0])
+  t = time.time()
+  conv.conv2d(clspt.queue(), imv, kernels, ikernels, imo)
+  print "Time used: ", time.time() - t
+  imo.update()
+  imout = imo.fetch()
+  imout = imout.astype(np.uint8)
+  cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
+
+test_conv2d()

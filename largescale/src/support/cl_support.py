@@ -1,4 +1,5 @@
 import pyopencl as cl
+import numpy as np
 
 mem_flags = cl.mem_flags
 mf = mem_flags
@@ -24,30 +25,56 @@ def queue(name=None):
     _queues[name] = queue
   return _queues[name]
 
+# Compile an OpenCL program
+# def compile(filename = None, code = None):
+#   ctx = context()
+#   if code is None:
+#     if filename is None:
+#       raise "Missing program code / file"
+#     else:
+#       file = open(filename)
+#       code = file.read()
+#       file.close()
+#   # preprocess the codes
+#   meta = {}
+#   lines = code.split("\n")
+#   cl.Program(ctx, code)
+
 class Variable:
-  def __init__(self, init=None, nbytes=None, read_only=False):
+  def __init__(self, init=None, shape=None, dtype=None, read_only=False):
     ctx = context()
     self.readonly = read_only
     self.swappable = not read_only
-    self.buf_host = init
     mode = mf.READ_ONLY if read_only else mf.READ_WRITE
     if not init is None:
+      self.buf_host = init
+      self.shape = self.buf_host.shape
+      self.dtype = self.buf_host.dtype
       self.buf_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
       if self.swappable:
         self.swp_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
       else:
         self.swp_dev = None
-    elif not nbytes is None:
-      self.buf_dev = cl.Buffer(ctx, mode, nbytes)
+    elif not shape is None and not dtype is None:
+      self.shape = shape
+      self.dtype = dtype
+      buf_host = np.zeros(self.shape).astype(self.dtype)
+      self.buf_dev = cl.Buffer(ctx, mode, buf_host.nbytes)
       if self.swappable:
-        self.swp_dev = cl.Buffer(ctx, mode, nbytes)
+        self.swp_dev = cl.Buffer(ctx, mode, buf_host.nbytes)
       else:
         self.swp_dev = None
     else:
-      raise "Cannot create variable: must set the init or nbytes"
+      raise "Cannot create variable: must set the initial value or shape&dtype"
 
-  def update(self):
+  def update(self, command_queue = None):
     if self.swappable:
+      cl.enqueue_barrier(command_queue or queue())
       tmp = self.swp_dev
       self.swp_dev = self.buf_dev
       self.buf_dev = tmp
+
+  def fetch(self, command_queue = None):
+    res = np.zeros(self.shape).astype(self.dtype)
+    cl.enqueue_copy(command_queue or queue(), res, self.buf_dev)
+    return res
