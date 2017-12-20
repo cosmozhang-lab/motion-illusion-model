@@ -1,12 +1,10 @@
 import numpy as np
 import pyopencl as cl
-import cl_support as clspt
+import largescale.src.support.cl_support as clspt
 import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]
-program_file = open( os.path.join(thisdir, "convolution.cl") )
-program = cl.Program(clspt.context(), program_file.read()).build()
-program_file.close()
+program = clspt.compile( os.path.join(thisdir, "convolution.cl") )
 
 class Conv2DKernel:
   def __init__(self, init):
@@ -14,10 +12,11 @@ class Conv2DKernel:
       self.kernel = init.kernel
       self.kernel_dev = init.kernel_dev
     elif isinstance(init, np.ndarray):
-      self.kernel = init
+      self.kernel = init.astype(np.double)
       self.kernel_dev = clspt.Variable(self.kernel, read_only = True)
     else:
       raise TypeError("Initial value must be either a Conv2DKernel or a ndarray")
+    self.shape = self.kernel.shape
     self.kernel_shape = self.kernel.shape
     self.kernel_shape_dev = clspt.Variable(np.array(self.kernel_shape), read_only = True)
 
@@ -30,7 +29,7 @@ class Conv2DKernelPool:
         self.kernels.append(kernel.kernel)
         self.shapes.append(kernel.kernel_shape)
       elif isinstance(kernel, np.ndarray):
-        self.kernels.append(kernel)
+        self.kernels.append(kernel.astype(np.double))
         self.shapes.append(kernel.shape)
       else:
         raise TypeError("Kernel must be either a Conv2DKernel or a ndarray")
@@ -55,14 +54,23 @@ class Conv2DKernelPool:
 # and the index of the kernel to use for each function is specified in 
 # `ikernels`. So input_map, output_map and ikernels should have the same 
 # shape.
+# @param input_map:   [Variable]<double>
+# @param kernel_pool: [Conv2DKernelPool]
+# @param ikernels:    [Variable]<int32>
+# @param output_pam:  [Variable]<double>
+# @kwarg queue:       [CommandQueue]
+# @kwarg update:      [Boolean] whether to update the output_map
 kernelf_conv2d = program.conv2d
-kernelf_conv2d.set_scalar_arg_dtypes([np.int32, np.int32, None, None, None, None, None])
-def conv2d(queue, input_map, kernel_pool, ikernels, output_map):
+def conv2d(input_map, kernel_pool, ikernels, output_map, queue = None, update=True):
+  if queue is None:
+    queue = clspt.queue()
   if not (input_map.shape == output_map.shape and input_map.shape == ikernels.shape):
-    raise TypeError("The size of input, output and ikernels must be equal")
+    raise ValueError("The size of input, output and ikernels must be equal")
   if isinstance(ikernels, np.ndarray):
     ikernels = clspt.Variable(ikernels, read_only = True)
   rows = input_map.shape[0]
   cols = input_map.shape[1]
   nthreads = input_map.shape[0] * input_map.shape[1]
-  return kernelf_conv2d(queue, (nthreads,), None, rows, cols, input_map.buf_dev, kernel_pool.kernels_dev.buf_dev, kernel_pool.shapes_dev.buf_dev, ikernels.buf_dev, output_map.swp_dev)
+  kernelf_conv2d(queue, (nthreads,), None, rows, cols, input_map.buf_dev, kernel_pool.kernels_dev.buf_dev, kernel_pool.shapes_dev.buf_dev, ikernels.buf_dev, output_map.swp_dev)
+  if update:
+    output_map.update(queue)

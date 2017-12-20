@@ -7,13 +7,6 @@ import largescale.src.support.cl_support as clspt
 import largescale.src.neuron.program as program
 from largescale.src.support import CommonConfig
 
-T_EXCITATORY = 1 # "V1NeuronType_Excitatory"
-T_INHIBITORY = 2 # "V1NeuronType_Inhibitory"
-T_EXC = T_EXCITATORY
-T_E = T_EXCITATORY
-T_INH = T_INHIBITORY
-T_I = T_INHIBITORY
-
 # V1 neuron group that directly receive stimulus (skipped LGN)
 class V1DirectNeuronGroup (NeuronGroup):
   # config:
@@ -73,13 +66,9 @@ class V1DirectNeuronGroup (NeuronGroup):
 
   def step(self, t, dt):
     NeuronGroup.step(self, t, dt)
-    queue = clspt.queue()
-    program.chain2(queue, self.g_lgn_on, self.s_lgn_on, self.tau_rise_lgn_on, self.tau_damp_lgn_on, dt)
-    program.chain2(queue, self.g_lgn_off, self.s_lgn_off, self.tau_rise_lgn_off, self.tau_damp_lgn_off, dt)
-    program.chain2(queue, self.g_gaba1, self.s_gaba1, self.tau_rise_gaba1, self.tau_damp_gaba1, dt)
-    program.chain2(queue, self.g_gaba2, self.s_gaba2, self.tau_rise_gaba2, self.tau_damp_gaba2, dt)
-    program.chain2(queue, self.g_ampa, self.s_ampa, self.tau_rise_ampa, self.tau_damp_ampa, dt)
-    program.chain2(queue, self.g_nmda, self.s_nmda, self.tau_rise_nmda, self.tau_damp_nmda, dt)
-
-  def update(self):
-    pass
+    program.chain2(self.g_lgn_on, self.s_lgn_on, self.tau_rise_lgn_on, self.tau_damp_lgn_on, dt)
+    program.chain2(self.g_lgn_off, self.s_lgn_off, self.tau_rise_lgn_off, self.tau_damp_lgn_off, dt)
+    program.chain2(self.g_gaba1, self.s_gaba1, self.tau_rise_gaba1, self.tau_damp_gaba1, dt)
+    program.chain2(self.g_gaba2, self.s_gaba2, self.tau_rise_gaba2, self.tau_damp_gaba2, dt)
+    program.chain2(self.g_ampa, self.s_ampa, self.tau_rise_ampa, self.tau_damp_ampa, dt)
+    program.chain2(self.g_nmda, self.s_nmda, self.tau_rise_nmda, self.tau_damp_nmda, dt)

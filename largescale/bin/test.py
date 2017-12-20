@@ -96,7 +96,7 @@ def test_dfsti():
     t = t + dt
 
 def test_conv2d():
-  import largescale.src.support.convolution as conv
+  import largescale.src.convolution as conv
   import largescale.src.support.cl_support as clspt
   import time
   import numpy as np
@@ -106,8 +106,8 @@ def test_conv2d():
   imv = clspt.Variable(im.astype(np.double))
   imo = clspt.Variable(np.empty_like(im).astype(np.double))
   kernels = [
-    np.array([[1,0,-1],[0,0,0],[-1,0,1]]).astype(np.double),
-    np.array([[-1,0,1],[0,0,0],[1,0,-1]]).astype(np.double),
+    np.array([[1,0,-1],[0,0,0],[-1,0,1]]),
+    np.array([[-1,0,1],[0,0,0],[1,0,-1]]),
     np.zeros([10,10]).astype(np.double) + 1.0/100.0
   ]
   nkernels = len(kernels)
@@ -116,9 +116,8 @@ def test_conv2d():
   for i in xrange(im.shape[0]):
     ikernels[i,:] = int(i * nkernels / im.shape[0])
   t = time.time()
-  conv.conv2d(clspt.queue(), imv, kernels, ikernels, imo)
+  conv.conv2d(imv, kernels, ikernels, imo)
   print "Time used: ", time.time() - t
-  imo.update()
   imout = imo.fetch()
   imout = imout.astype(np.uint8)
   cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
