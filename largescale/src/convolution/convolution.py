@@ -55,19 +55,24 @@ class Conv2DKernelPool:
 # `ikernels`. So input_map, output_map and ikernels should have the same 
 # shape.
 # @param input_map:   [Variable]<double>
-# @param kernel_pool: [Conv2DKernelPool]
-# @param ikernels:    [Variable]<int32>
 # @param output_pam:  [Variable]<double>
+# @param kernel_pool: [Conv2DKernelPool] | [Conv2DKernel]
+# @param ikernels:    [Variable]<int32> | None
 # @kwarg queue:       [CommandQueue]
 # @kwarg update:      [Boolean] whether to update the output_map
 kernelf_conv2d = program.conv2d
-def conv2d(input_map, kernel_pool, ikernels, output_map, queue = None, update=True):
+def conv2d(input_map, output_map, kernel_pool, ikernels = None, queue = None, update=True):
   if queue is None:
     queue = clspt.queue()
   if not (input_map.shape == output_map.shape and input_map.shape == ikernels.shape):
     raise ValueError("The size of input, output and ikernels must be equal")
   if isinstance(ikernels, np.ndarray):
     ikernels = clspt.Variable(ikernels, read_only = True)
+  if isinstance(kernel_pool, Conv2DKernelPool):
+    pass
+  elif isinstance(kernel_pool, Conv2DKernel):
+    kernel_pool = Conv2DKernelPool([kernel_pool])
+    ikernels = clspt.Variable( np.zeros(input_map.shape).astype(np.int32), read_only = True )
   rows = input_map.shape[0]
   cols = input_map.shape[1]
   nthreads = input_map.shape[0] * input_map.shape[1]

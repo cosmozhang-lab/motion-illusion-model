@@ -51,3 +51,5 @@ def chain2noisy(g, s, tspikes, firing_rate, tau_rise, tau_damp, t, dt, randseeds
   if update:
     g.update(queue)
     s.update(queue)
+    tspikes.update(queue)
+    randseeds.update(queue)

@@ -10,6 +10,16 @@ from largescale.src.support import CommonConfig
 class StimulusBase:
   def __init__(self, size, config=CommonConfig()):
     self.size = size
+    self.shape = self.size
     self.config = config
-  def get(t):
-    return np.zeros(self.size)
+  # Get the stimulus at t
+  # `var` is an optional device Variable. If this
+  # is provided, the function will fill the `var`
+  # with the new stimulus pattern. Else it will
+  # return a `ndarray` containing the pattern.
+  # @param var:  [Variable]<double> if given, fill this variable
+  def get(self, t, var=None, queue = None):
+    if var is None:
+      return np.zeros(self.size)
+    else:
+      var.fill(0.0, queue = queue)

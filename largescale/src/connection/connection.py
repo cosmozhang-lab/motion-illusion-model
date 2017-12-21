@@ -48,8 +48,8 @@ class Connection:
   def step(self, t, dt):
     last_t = t
     for i_nspikes in xrange(self.input.nspikes):
-      tspk = self.input.tspikes[i_nspikes]
-      ispk = self.input.ispikes[i_nspikes]
+      tspk = self.input.tspikes.buf_host[i_nspikes]
+      ispk = self.input.ispikes.buf_host[i_nspikes]
       if tspk > t and tspk <= t + dt:
         if tspk > last_t:
           chain2(self.g, self.s, self.tau_rise, self.tau_damp, tspk - last_t, update=True)

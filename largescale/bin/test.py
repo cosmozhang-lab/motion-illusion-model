@@ -116,7 +116,7 @@ def test_conv2d():
   for i in xrange(im.shape[0]):
     ikernels[i,:] = int(i * nkernels / im.shape[0])
   t = time.time()
-  conv.conv2d(imv, kernels, ikernels, imo)
+  conv.conv2d(imv, imo, kernels, ikernels)
   print "Time used: ", time.time() - t
   imout = imo.fetch()
   imout = imout.astype(np.uint8)

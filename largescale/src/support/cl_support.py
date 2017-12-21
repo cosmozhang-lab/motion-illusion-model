@@ -31,6 +31,94 @@ def get_queue(name=None):
   return _queues[name]
 queue = get_queue
 
+class CLKernelArgMeta:
+  def __init__(self, name, **kwargs):
+    if "typestr" in kwargs:
+      def word2type(word):
+        if word == "double":
+          return np.double
+        elif word == "int":
+          return np.int32
+        elif word == "unsigned int":
+          return np.uint32
+        elif word == "long":
+          return np.int32
+        elif word == "unsigned long":
+          return np.uint32
+        elif word == "char":
+          return np.int8
+        elif word == "unsigned char":
+          return np.uint8
+        elif word == "long long":
+          return np.int64
+        elif word == "unsigned long long":
+          return np.uint64
+        else:
+          return None
+      typestr = kwargs["typestr"]
+      regexp = re.compile(r"\W")
+      argwords = []
+      last_idx = 0
+      for match in regexp.finditer(typestr):
+        match_start = match.start()
+        match_text = match.group(0)
+        if last_idx < match_start:
+          argwords.append(typestr[last_idx:match_start])
+        if match_text == "*":
+          argwords.append(match_text)
+        last_idx = match.end()
+      if last_idx < len(typestr):
+        argwords.append(typestr[last_idx:])
+      self.islocal = "__local" in argwords
+      self.isglobal = "__global" in argwords
+      self.isconst = "const" in argwords
+      self.dtype = None
+      typeword = ""
+      typewords = ["unsigned", "int", "double", "long"]
+      for word in argwords:
+        if word in typewords:
+          typeword += " " + word
+        elif len(typeword) > 0:
+          self.dtype = word2type(typeword.strip())
+          typeword = ""
+      if len(typeword) > 0:
+        self.dtype = word2type(typeword.strip())
+    else:
+      self.isglobal = False
+      self.islocal = False
+      self.isconst = False
+      self.dtype = None
+    self.isglobal = kwargs["isglobal"] if "isglobal" in kwargs else self.isglobal
+    self.islocal = kwargs["islocal"] if "islocal" in kwargs else self.islocal
+    self.isconst = kwargs["isconst"] if "isconst" in kwargs else self.isconst
+    self.dtype = kwargs["dtype"] if "dtype" in kwargs else self.dtype
+  
+  @property
+  def isbuffer(self):
+    return self.islocal or self.isglobal
+
+  @property
+  def scalar_type(self):
+    if self.isbuffer:
+      return None
+    else:
+      return self.dtype
+
+class CLKernel:
+  def __init__(self, kernel, arg_metas = []):
+    self.kernel = kernel
+    self.arg_metas = arg_metas
+    self.kernel.set_scalar_arg_dtypes([arg.scalar_type for arg in arg_metas])
+  def __call__(self, *args, **kwargs):
+    size = args[0]
+    args = args[1:]
+    if not isinstance(size, tuple) and not isinstance(size, list):
+      size = (size,)
+    queue = kwargs["queue"] if queue in kwargs else get_queue()
+    kargs = [queue, size, None]
+    kargs.extend(args)
+    apply(self.kernel, kargs)
+
 # compile a cl program
 class CLProgram:
   def __init__(self, filename = None, code = None):
@@ -93,43 +181,18 @@ class CLProgram:
     # extract function metas
     metas = {}
     re_function_header = re.compile(r"__kernel\s+void\s+(\w+)\s*\(([^\(\)]+)\)")
-    re_function_arg = re.compile(r"(^[\w\s]+)([\*\s]\s*)(\w+)\s*$")
-    re_function_argtype_global_mem = re.compile(r"^__global\s+[\w\s]+\*$")
-    re_function_argtype_local_mem = re.compile(r"^__local\s+[\w\s]+\*$")
+    re_function_arg = re.compile(r"(^[\w\s]+)([\*\s]\s*)(\w+)$")
+    # re_function_argtype_global_mem = re.compile(r"^__global\s+(const\s+)?[\w\s]+\*$")
+    # re_function_argtype_local_mem = re.compile(r"^__local\s+(const\s+)?[\w\s]+\*$")
     for match in re_function_header.finditer(code):
       fn_name = match.group(1)
       fn_args = match.group(2).split(",")
       arg_metas = []
       for arg in fn_args:
-        match = re_function_arg.match(arg)
-        arg_name = match.group(3)
-        arg_typestr = (match.group(1) + match.group(2)).strip()
-        arg_type = None
-        if re_function_argtype_global_mem.match(arg_typestr):
-          arg_type = None
-        elif re_function_argtype_local_mem.match(arg_typestr):
-          arg_type = None
-        elif arg_typestr == "double":
-          arg_type = np.double
-        elif arg_typestr == "int":
-          arg_type = np.int32
-        elif arg_typestr == "unsigned int":
-          arg_type = np.uint32
-        elif arg_typestr == "long":
-          arg_type = np.int32
-        elif arg_typestr == "unsigned long":
-          arg_type = np.uint32
-        elif arg_typestr == "char":
-          arg_type = np.int8
-        elif arg_typestr == "unsigned char":
-          arg_type = np.uint8
-        elif arg_typestr == "long long":
-          arg_type = np.int64
-        elif arg_typestr == "unsigned long long":
-          arg_type = np.uint64
-        else:
-          raise TypeError("Unknown argument type: %s" % arg_typestr)
-        arg_metas.append({"name": arg_name, "type": arg_type})
+        arg_match = re_function_arg.match(arg.strip())
+        arg_typestr = arg_match.group(1) + arg_match.group(2)
+        arg_name = arg_match.group(3)
+        arg_metas.append(CLKernelArgMeta(arg_name, typestr=arg_typestr))
       metas[fn_name] = {"args": arg_metas}
     # compile
     self.program = cl.Program(ctx, code).build()
@@ -139,7 +202,7 @@ class CLProgram:
       fn_name = kernel.get_info(cl.kernel_info.FUNCTION_NAME)
       if not fn_name in metas: continue
       meta = metas[fn_name]
-      kernel.set_scalar_arg_dtypes([arg["type"] for arg in meta["args"]])
+      kernel.set_scalar_arg_dtypes([arg.scalar_type for arg in meta["args"]])
       self.kernel_dict[fn_name] = kernel
 
   def __getattr__(self, name):
@@ -159,46 +222,69 @@ class Variable:
     self.swappable = (not read_only) or (not auto_update)
     mode = mf.READ_ONLY if read_only else mf.READ_WRITE
     if not init is None:
-      self.buf_host = init
-      self.shape = self.buf_host.shape
-      self.dtype = self.buf_host.dtype
-      self.buf_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
+      self._buf_host = init
+      self.shape = self._buf_host.shape
+      self.dtype = self._buf_host.dtype
+      self._buf_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
       if self.swappable:
-        self.swp_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
+        self._swp_dev = cl.Buffer(ctx, mode | mf.COPY_HOST_PTR, hostbuf = init)
       else:
-        self.swp_dev = None
+        self._swp_dev = None
     elif not shape is None and not dtype is None:
       self.shape = shape
       self.dtype = dtype
-      buf_host = np.zeros(self.shape).astype(self.dtype)
-      self.buf_dev = cl.Buffer(ctx, mode, buf_host.nbytes)
+      self._buf_host = np.zeros(self.shape).astype(self.dtype)
+      self._buf_dev = cl.Buffer(ctx, mode, self._buf_host.nbytes)
       if self.swappable:
-        self.swp_dev = cl.Buffer(ctx, mode, buf_host.nbytes)
+        self._swp_dev = cl.Buffer(ctx, mode, self._buf_host.nbytes)
       else:
-        self.swp_dev = None
+        self._swp_dev = None
     else:
       raise "Cannot create variable: must set the initial value or shape&dtype"
+    self.dirty = False
 
   def __del__(self):
-    if self.buf_dev:
-      self.buf_dev.release()
-    if self.swp_dev:
-      self.swp_dev.release()
-    object.__del__(self)
+    if self._buf_dev:
+      self._buf_dev.release()
+      self._buf_dev = None
+    if self._swp_dev:
+      self._swp_dev.release()
+      self._swp_dev = None
+
+  @property
+  def buf_dev(self):
+    return self._buf_dev
+  @property
+  def swp_dev(self):
+    if self.swappable:
+      return self._swp_dev
+    else:
+      return self._buf_dev
+  @property
+  def buf_host(self):
+    return self.fetch()
 
   def update(self, queue = None):
     if self.swappable:
       cl.enqueue_barrier(queue or get_queue())
-      tmp = self.swp_dev
-      self.swp_dev = self.buf_dev
-      self.buf_dev = tmp
+      tmp = self._swp_dev
+      self._swp_dev = self._buf_dev
+      self._buf_dev = tmp
+    if not self.read_only:
+      self.dirty = True
 
   def fetch(self, queue = None):
-    res = np.zeros(self.shape).astype(self.dtype)
-    cl.enqueue_copy(queue or get_queue(), res, self.buf_dev)
-    return res
+    cl.enqueue_copy(queue or get_queue(), self._buf_host, self._buf_dev)
+    self.dirty = False
+    return self._buf_host
 
   def fill(self, src, queue = None):
-    cl.enqueue_fill_buffer(queue or get_queue(), self.buf_dev, src, 0, src.nbytes)
+    nbytes = self._buf_host.nbytes
+    if isinstance(src, np.ndarray):
+      nbytes = src.nbytes
+    else:
+      src = np.array(src).astyle(self.dtype)
+    cl.enqueue_fill_buffer(queue or get_queue(), self._buf_dev, src, 0, nbytes)
+    self.dirty = True
 
 RAND_MAX = 2**32-1
