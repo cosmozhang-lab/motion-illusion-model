@@ -18,7 +18,7 @@ __kernel void conv2d(
   int ir = (int)(id / cols);
   int ic = id - ir * cols;
   int ik = ikernels[id];
-  long long kern_offset = 0;
+  __global float *kern_offset = kernels;
   for (int i = 0; i < ik; i++) kern_offset += kernel_shapes[i*2] * kernel_shapes[i*2+1];
   // kernel size
   int krows = kernel_shapes[ik*2];
@@ -41,7 +41,7 @@ __kernel void conv2d(
       if (mc >= cols) break;
       int ipx = coor2idx2d(rows, cols, mr, mc);
       int ipxk = coor2idx2d(krows, kcols, r, c);
-      res += kernels[kern_offset + ipxk] * input_map[ipx];
+      res += kern_offset[ipxk] * input_map[ipx];
     }
   }
   output_map[ coor2idx2d(rows, cols, ir, ic) ] = res;

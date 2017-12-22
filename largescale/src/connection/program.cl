@@ -63,7 +63,7 @@ __kernel void chain2_with_input(
   int ir = (int)(id / cols); // row index of neuron
   int ic = id - ir * cols; // column index of neuron
   int in = icncts[id]; // index of connectivity matrix
-  long long cnct_offset = 0;
+  __global float * cnct_offset = cncts;
   for (int i = 0; i < in; i++) cnct_offset += cnct_shapes[i*2] * cnct_shapes[i*2+1];
   // connectivity matrix size
   int nrows = cnct_shapes[in*2];
@@ -92,7 +92,7 @@ __kernel void chain2_with_input(
   // do iteration
   if (ispkc >= left && ispkc < right && ispkr >= top && ispkr < bottom) {
     float kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
-    float cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
+    float cnct_val = cnct_offset[ coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
     float amp = kern_val * cnct_val;
     float g_val = g_previous[id];
     float s_val = s_previous[id];
@@ -151,7 +151,7 @@ __kernel void input(
   int ir = (int)(id / cols); // row index of neuron
   int ic = id - ir * cols; // column index of neuron
   int in = icncts[id]; // index of connectivity matrix
-  long long cnct_offset = 0;
+  __global float * cnct_offset = cncts;
   for (int i = 0; i < in; i++) cnct_offset += cnct_shapes[i*2] * cnct_shapes[i*2+1];
   // connectivity matrix size
   int nrows = cnct_shapes[in*2];
@@ -180,7 +180,7 @@ __kernel void input(
   // do iteration
   if (ispkc >= left && ispkc < right && ispkr >= top && ispkr < bottom) {
     float kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
-    float cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
+    float cnct_val = cnct_offset[ coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
     float amp = kern_val * cnct_val;
     float s_val = s[id];
     tau_rise_inv = 1.0 / tau_rise;
