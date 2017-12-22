@@ -300,7 +300,6 @@ class Variable:
 # Compile a expression
 def map_kernel(expr, name = None):
   import re
-  matches = re.compile(r"(\w+)\s*(\[i\])?").findall(expr)
   class ParamItem:
     def __init__(self, match=None, isout=False, name=None):
       if isout:
@@ -309,7 +308,7 @@ def map_kernel(expr, name = None):
         self.isout = True
       else:
         self.name = match.group(1)
-        self.isbuf = (len(match.group(2)) > 0)
+        self.isbuf = not match.group(2) is None
         self.isout = False
     def toString(self):
       if self.isbuf:
@@ -323,15 +322,15 @@ def map_kernel(expr, name = None):
   result_param_name = "_map_kernel_function_result" # name of the output buffer argument
   params = []
   param_names = []
-  for m in matches:
+  for m in re.compile(r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(\[i\])?").finditer(expr):
     p = ParamItem(m)
     if not p.name in param_names:
       params.append(p)
       param_names.append(p.name)
   params.append(ParamItem(isout=True, name=result_param_name))
   paramstr = ", ".join([p.toString() for p in params])
-  code = "__kernel void %s (%s) { %s[i] = %s; }" % (
-      name, paramstr, result_param_name, result_param_name, expr )
+  code = "__kernel void %s (%s) { int i = get_global_id(0); %s[i] = %s; }" % (
+      name, paramstr, result_param_name, expr )
   kernel = getattr(compile(code = code), name)
   class MapKernel:
     def __init__(self, kernel, params):
@@ -364,19 +363,19 @@ def map_kernel(expr, name = None):
       queue = kwargs["queue"] if "queue" in kwargs else get_queue()
       update = kwargs["update"] if "update" in kwargs else True
       inparams = [queue, (params[-1].size,), None]
-      for p in params:
-        if p.isbuf:
-          if p.isout:
-            inparams.append(p.swp_dev)
+      for i in xrange(len(params)):
+        if self.params[i].isbuf:
+          if self.params[i].isout:
+            inparams.append(params[i].swp_dev)
           else:
-            inparams.append(p.buf_dev)
+            inparams.append(params[i].buf_dev)
         else:
-          inparams.append(p)
+          inparams.append(params[i])
       apply(self.kernel, inparams)
       if update:
-        for p in params:
-          if p.isbuf and p.isout:
-            p.update(queue)
+        for i in xrange(len(params)):
+          if self.params[i].isbuf and self.params[i].isout:
+            params[i].update(queue)
   return MapKernel(kernel, params)
 
 

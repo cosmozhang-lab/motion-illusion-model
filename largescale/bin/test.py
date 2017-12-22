@@ -125,13 +125,13 @@ def test_conv2d():
 def test_map_kernel():
   import largescale.src.support.cl_support as clspt
   import numpy as np
-  kern = clspt.map_kernel("a[i] + b[i] * c")
+  kern = clspt.map_kernel("a[i] * 1.0 + b[i] * c")
   n = 10
-  a = clspt.Variable( np.arange(n).astype(np.double) )
+  a = clspt.Variable( np.arange(n).astype(np.double) + 10.0 )
   b = clspt.Variable( 2.0 - a.buf_host )
   c = 1.0
   r = clspt.Variable( np.zeros_like(a.buf_host) )
   kern(a=a, b=b, c=c, out=r)
   print r.fetch()
 
-test_conv2d()
+test_map_kernel()
