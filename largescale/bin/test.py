@@ -30,7 +30,7 @@ def test_cl():
   import largescale.src.support.cl_support as clspt
   import numpy as np
   import time
-  n = 3000000
+  n = 30
   ctx = clspt.context()
   prg = cl.Program(ctx, """
   inline double m_add(double a, double b) {
@@ -49,8 +49,10 @@ def test_cl():
   res_gs = []
   ni = 1
   for i in xrange(ni):
-    a_np = np.random.rand(n).astype(np.double)
-    b_np = np.random.rand(n).astype(np.double)
+    # a_np = np.random.rand(n).astype(np.double)
+    # b_np = np.random.rand(n).astype(np.double)
+    a_np = np.arange(n).astype(np.double)
+    b_np = np.arange(n).astype(np.double)
     a_gs.append( cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf = a_np) )
     b_gs.append( cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf = b_np) )
     res_gs.append( cl.Buffer(ctx, mf.WRITE_ONLY, a_np.nbytes) )
@@ -62,7 +64,7 @@ def test_cl():
     print time.time() - t
   # cl.wait_for_events([cl.enqueue_marker(q) for q in queues])
   res_np = np.empty_like(a_np)
-  # cl.enqueue_copy(queues[0], res_np, res_gs[0])
+  cl.enqueue_copy(queues[0], res_np, res_gs[0])
   cl.enqueue_barrier(queues[-1])
   print time.time() - t
 
@@ -134,4 +136,4 @@ def test_map_kernel():
   kern(a=a, b=b, c=c, out=r)
   print r.fetch()
 
-test_map_kernel()
+test_cl()
