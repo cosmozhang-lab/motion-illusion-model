@@ -2,7 +2,7 @@
 
 import numpy as np
 import largescale.src.support.cl_support as clspt
-from largescale.src.support import CommonConfig
+from largescale.src.support.common import CommonConfig
 from program import chain2
 
 T_EXCITATORY = 1

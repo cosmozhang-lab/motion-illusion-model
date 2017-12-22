@@ -1,4 +1,4 @@
-#include <support/geometry.cl>
+#include <geometry.cl>
 
 /**
  * 2D Convolution

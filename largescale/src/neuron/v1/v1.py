@@ -7,8 +7,8 @@ import largescale.src.support.cl_support as clspt
 import largescale.src.support.cl_common as clcom
 from program import rk2params
 import largescale.src.neuron.program as program
-from largescale.src.support import CommonConfig
-from largescale.src.noisy import NoisyConnection
+from largescale.src.support.common import CommonConfig
+from largescale.src.neuron.connection import NoisyConnection
 
 # V1 neuron group that directly receive stimulus (skipped LGN)
 class V1DirectNeuronGroup (NeuronGroup):

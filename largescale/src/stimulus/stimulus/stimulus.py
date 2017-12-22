@@ -1,7 +1,7 @@
 # Visual stimuli
 
 import numpy as np
-from largescale.src.support import CommonConfig
+from largescale.src.support.common import CommonConfig
 
 # Stimulus is regarded as a source flow,
 # which gives an visual image on any certain t.

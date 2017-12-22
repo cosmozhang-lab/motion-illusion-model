@@ -1,6 +1,6 @@
 # Unit testings
 
-from largescale.src.support import CommonConfig
+from largescale.src.support.common import CommonConfig
 
 def test_v1():
   from largescale.src.v1 import V1DirectNeuronGroup
@@ -99,7 +99,7 @@ def test_dfsti():
     t = t + dt
 
 def test_conv2d():
-  import largescale.src.convolution as conv
+  import largescale.src.support.convolution as conv
   import largescale.src.support.cl_support as clspt
   import time
   import numpy as np
@@ -137,4 +137,18 @@ def test_map_kernel():
   kern(a=a, b=b, c=c, out=r)
   print r.fetch()
 
-test_conv2d()
+def test_model():
+  from largescale.src.v1 import V1DirectNeuronGroup, T_E, T_I
+  import numpy as np
+  config = CommonConfig({
+    "tau_rise_gaba1": 0.1,
+    "tau_damp_gaba1": 0.1,
+    "tau_rise_gaba2": 0.1,
+    "tau_damp_gaba2": 0.1,
+    "tau_rise_ampa": 0.1,
+    "tau_damp_ampa": 0.1,
+    "tau_rise_nmda": 0.1,
+    "tau_damp_nmda": 0.1
+  })
+
+test_geo()

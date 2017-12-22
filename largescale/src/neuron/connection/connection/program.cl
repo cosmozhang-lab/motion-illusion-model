@@ -1,5 +1,5 @@
-#include <support/cl_support.cl>
-#include <support/geometry.cl>
+#include <std.cl>
+#include <geometry.cl>
 
 /* 
  * Calcuate the conductance decaying process with spike input.

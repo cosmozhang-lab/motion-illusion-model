@@ -3,10 +3,10 @@
 import numpy as np
 import largescale.src.support.cl_support as clspt
 import largescale.src.support.cl_common as clcom
-from largescale.src.support import CommonConfig
-from largescale.src.neuron import chain2
-from largescale.src.convolution import Conv2DKernelPool, conv2d
-from connection import Connection
+from largescale.src.support.common import CommonConfig
+from largescale.src.neuron.program import chain2
+from largescale.src.support.convolution import Conv2DKernelPool, conv2d
+from largescale.src.connection import Connection
 
 class DirectConnection (Connection):
   def __init__(self, config = None, **kwargs):

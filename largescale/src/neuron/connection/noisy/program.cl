@@ -1,4 +1,4 @@
-#include <support/cl_support.cl>
+#include <std.cl>
 
 /* 
  * Calcuate the conductance decaying process

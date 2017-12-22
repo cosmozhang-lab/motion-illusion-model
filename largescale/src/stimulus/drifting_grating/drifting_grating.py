@@ -1,12 +1,9 @@
 from stimulus import StimulusBase
 import numpy as np
 import largescale.src.support.geometry as geo
-from largescale.src.support import CommonConfig
+from largescale.src.support.common import CommonConfig
 import largescale.src.support.cl_support as clspt
-import os
-
-thisdir = os.path.split(os.path.realpath(__file__))[0]
-program = clspt.compile( os.path.join(thisdir, "drifting_grating.cl") )
+import program
 
 # Drifting-grating stimulus
 class DFStimulus (StimulusBase):

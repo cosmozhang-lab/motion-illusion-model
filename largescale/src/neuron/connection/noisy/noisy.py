@@ -17,9 +17,9 @@
 
 import numpy as np
 import largescale.src.support.cl_support as clspt
-from largescale.src.support import CommonConfig
-from largescale.src.neuron import chain2
-from largescale.src.convolution import Conv2DKernel
+from largescale.src.support.common import CommonConfig
+from largescale.src.neuron.program import chain2
+from largescale.src.support.convolution import Conv2DKernel
 from largescale.src.connection import Connection
 import program
 import os

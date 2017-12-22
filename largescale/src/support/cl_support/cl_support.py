@@ -149,7 +149,7 @@ class CLProgram:
       file.close()
       filedir = os.path.split(os.path.realpath(filename))[0]
     # prepare
-    global_dir = os.path.realpath(os.path.join(thisdir, ".."))
+    global_dir = os.path.realpath(os.path.join(thisdir, "../cl_lib"))
     lines = code.split("\n")
     # process includes
     re_include_global = re.compile(r"^\s*#include\s+\<([^\<^\>]+)\>\s*\;?\s*$")

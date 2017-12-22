@@ -1,6 +1,6 @@
 import numpy as np
 import largescale.src.support.cl_support as clspt
-from largescale.src.support import CommonConfig
+from largescale.src.support.common import CommonConfig
 import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]
