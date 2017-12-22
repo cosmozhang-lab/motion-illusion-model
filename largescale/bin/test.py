@@ -122,4 +122,16 @@ def test_conv2d():
   imout = imout.astype(np.uint8)
   cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
 
+def test_map_kernel():
+  import largescale.src.support.cl_support as clspt
+  import numpy as np
+  kern = clspt.map_kernel("a[i] + b[i] * c")
+  n = 10
+  a = clspt.Variable( np.arange(n).astype(np.double) )
+  b = clspt.Variable( 2.0 - a.buf_host )
+  c = 1.0
+  r = clspt.Variable( np.zeros_like(a.buf_host) )
+  kern(a=a, b=b, c=c, out=r)
+  print r.fetch()
+
 test_conv2d()

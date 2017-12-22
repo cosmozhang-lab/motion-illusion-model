@@ -12,6 +12,7 @@ program = clspt.compile( os.path.join(thisdir, "cl_common.cl") )
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_add = program.add
+kernel_addscalar = program.addscalar
 def add(*args, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -24,13 +25,25 @@ def add(*args, **kwargs):
   result = args[-1]
   x = args[0:-1]
   for xx in x:
-    if not xx.size == result.size:
+    if isinstance(xx, clspt.Variable) and not xx.size == result.size:
       raise ValueError("Variable sizes must be equal")
-  x0 = x[0].buf_dev
+  x0 = x[0]
+  x0scalar = not isinstance(x[0], clspt.Variable)
+  if not x0scalar: x0 = x0.buf_dev
   for i in xrange(1, len(x)):
-    x1 = x[i].buf_dev
-    kernel_add(queue, (result.size,), None, x0, x1, result.buf_swp)
+    x1 = x[i]
+    isscalar = not isinstance(x[0], clspt.Variable)
+    if isscalar: x1 = x1.buf_dev
+    if isscalar and x0scalar:
+      cl.enqueue_fill_buffer(queue, result.buf_swp, x0 + x1, 0, result.nbytes)
+    elif x0scalar:
+      kernel_addscalar(queue, (result.size,), None, x0, x1, result.buf_swp)
+    elif isscalar:
+      kernel_addscalar(queue, (result.size,), None, x1, x0, result.buf_swp)
+    else:
+      kernel_add(queue, (result.size,), None, x0, x1, result.buf_swp)
     x0 = result.buf_swp
+    x0scalar = False
   if with_update:
     result.update(queue)
   return result
@@ -42,6 +55,7 @@ def add(*args, **kwargs):
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_sub = program.sub
+kernel_subscalar = program.subscalar
 def sub(*args, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -54,13 +68,25 @@ def sub(*args, **kwargs):
   result = args[-1]
   x = args[0:-1]
   for xx in x:
-    if not xx.size == result.size:
+    if isinstance(xx, clspt.Variable) and not xx.size == result.size:
       raise ValueError("Variable sizes must be equal")
-  x0 = x[0].buf_dev
+  x0 = x[0]
+  x0scalar = not isinstance(x[0], clspt.Variable)
+  if not x0scalar: x0 = x0.buf_dev
   for i in xrange(1, len(x)):
-    x1 = x[i].buf_dev
-    kernel_add(queue, (result.size,), None, x0, x1, result.buf_swp)
+    x1 = x[i]
+    isscalar = not isinstance(x[0], clspt.Variable)
+    if isscalar: x1 = x1.buf_dev
+    if isscalar and x0scalar:
+      cl.enqueue_fill_buffer(queue, result.buf_swp, x0 - x1, 0, result.nbytes)
+    elif x0scalar:
+      kernel_subscalar(queue, (result.size,), None, x0, x1, result.buf_swp)
+    elif isscalar:
+      kernel_addscalar(queue, (result.size,), None, -x1, x0, result.buf_swp)
+    else:
+      kernel_sub(queue, (result.size,), None, x0, x1, result.buf_swp)
     x0 = result.buf_swp
+    x0scalar = False
   if with_update:
     result.update(queue)
   return result

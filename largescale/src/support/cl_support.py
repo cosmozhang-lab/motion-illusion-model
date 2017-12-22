@@ -215,6 +215,7 @@ def compile(filename = None, code = None):
   return CLProgram(filename = filename, code = code)
 
 
+
 class Variable:
   def __init__(self, init=None, shape=None, dtype=None, read_only=False, auto_update=False):
     ctx = context()
@@ -264,6 +265,14 @@ class Variable:
   def buf_host(self):
     return self.fetch()
 
+  @property
+  def nbytes(self):
+    return self._buf_host.nbytes
+
+  @property
+  def size(self):
+    return self._buf_host.size
+
   def update(self, queue = None):
     if self.swappable:
       cl.enqueue_barrier(queue or get_queue())
@@ -286,5 +295,90 @@ class Variable:
       src = np.array(src).astyle(self.dtype)
     cl.enqueue_fill_buffer(queue or get_queue(), self._buf_dev, src, 0, nbytes)
     self.dirty = True
+
+
+# Compile a expression
+def map_kernel(expr, name = None):
+  import re
+  matches = re.compile(r"(\w+)\s*(\[i\])?").findall(expr)
+  class ParamItem:
+    def __init__(self, match=None, isout=False, name=None):
+      if isout:
+        self.name = name
+        self.isbuf = True
+        self.isout = True
+      else:
+        self.name = match.group(1)
+        self.isbuf = (len(match.group(2)) > 0)
+        self.isout = False
+    def toString(self):
+      if self.isbuf:
+        if self.isout:
+          return "__global double * " + self.name
+        else:
+          return "__global const double * " + self.name
+      else:
+        return "double " + self.name
+  if name is None: name = "_map_kernel_function" # the default name
+  result_param_name = "_map_kernel_function_result" # name of the output buffer argument
+  params = []
+  param_names = []
+  for m in matches:
+    p = ParamItem(m)
+    if not p.name in param_names:
+      params.append(p)
+      param_names.append(p.name)
+  params.append(ParamItem(isout=True, name=result_param_name))
+  paramstr = ", ".join([p.toString() for p in params])
+  code = "__kernel void %s (%s) { %s[i] = %s; }" % (
+      name, paramstr, result_param_name, result_param_name, expr )
+  kernel = getattr(compile(code = code), name)
+  class MapKernel:
+    def __init__(self, kernel, params):
+      self.kernel = kernel
+      self.params = params
+      self.param_names = [p.name for p in self.params]
+    def __call__(self, *args, **kwargs):
+      params = [None for p in self.params]
+      nargs = len(args)
+      for i in xrange(nargs):
+        params[i] = args[i]
+      for i in xrange(nargs, len(params)):
+        k = self.param_names[i]
+        if k in kwargs:
+          params[i] = kwargs[k]
+        else:
+          if i < len(params) - 1:
+            raise TypeError("Argument [%s](#%d) is not given" % (k,i))
+      if "out" in kwargs: params[-1] = kwargs["out"]
+      if "result" in kwargs: params[-1] = kwargs["result"]
+      if "output" in kwargs: params[-1] = kwargs["output"]
+      outsize = params[-1].size
+      for i in xrange(len(params)):
+        if self.params[i].isbuf and not isinstance(params[i], Variable):
+          raise TypeError("Argument [%s](#%d) should be a buffer" % (self.params[i].name, i))
+        elif not self.params[i].isbuf and isinstance(params[i], Variable):
+          raise TypeError("Argument [%s](#%d) should be a buffer" % (self.params[i].name, i))
+        if self.params[i].isbuf and not (params[i].size == outsize):
+          raise ValueError("Size of argument [%s](#%d) is not compatible with output buffer" % (self.params[i].name, i))
+      queue = kwargs["queue"] if "queue" in kwargs else get_queue()
+      update = kwargs["update"] if "update" in kwargs else True
+      inparams = [queue, (params[-1].size,), None]
+      for p in params:
+        if p.isbuf:
+          if p.isout:
+            inparams.append(p.swp_dev)
+          else:
+            inparams.append(p.buf_dev)
+        else:
+          inparams.append(p)
+      apply(self.kernel, inparams)
+      if update:
+        for p in params:
+          if p.isbuf and p.isout:
+            p.update(queue)
+  return MapKernel(kernel, params)
+
+
 
 RAND_MAX = 2**32-1

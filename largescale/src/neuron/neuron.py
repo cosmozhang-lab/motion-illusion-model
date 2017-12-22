@@ -41,6 +41,7 @@ class NeuronGroup:
     trefs = np.zeros(self.shape).astype(np.double) + config.fetch("t_ref", 0.0)
     self.trefs = clspt.Variable( trefs, read_only=True )
 
+    # for rk2 voltage evolving
     self.alpha0 = clspt.Variable( np.zeros(self.shape).astype(np.double) )
     self.beta0 = clspt.Variable( np.zeros(self.shape).astype(np.double) )
     self.alpha1 = clspt.Variable( np.zeros(self.shape).astype(np.double) )
