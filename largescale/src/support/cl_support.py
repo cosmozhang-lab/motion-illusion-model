@@ -76,7 +76,7 @@ class CLKernelArgMeta:
       self.isconst = "const" in argwords
       self.dtype = None
       typeword = ""
-      typewords = ["unsigned", "int", "double", "float" "long"]
+      typewords = ["unsigned", "int", "double", "float", "long"]
       for word in argwords:
         if word in typewords:
           typeword += " " + word
@@ -116,8 +116,8 @@ class CLKernel:
     args = args[1:]
     if not isinstance(size, tuple) and not isinstance(size, list):
       size = (size,)
-    queue = kwargs["queue"] if queue in kwargs else get_queue()
-    update = kwargs["update"] if update in kwargs else get_queue()
+    queue = kwargs["queue"] if "queue" in kwargs else get_queue()
+    update = kwargs["update"] if "update" in kwargs else get_queue()
     kargs = [queue, size, None]
     for i in xrange(len(args)):
       arg = args[i]
@@ -387,7 +387,7 @@ def map_kernel(expr, name = None):
             inparams.append(params[i].buf_dev)
         else:
           inparams.append(params[i])
-      apply(self.kernel, inparams)
+      apply(self.kernel.kernel, inparams)
       if update:
         for i in xrange(len(params)):
           if self.params[i].isbuf and self.params[i].isout:
