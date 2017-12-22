@@ -38,7 +38,7 @@ So the spike interval `tau` obeys distribution:
 @param dt:          delta time
 @param randseeds:   random seed
 """
-kernel_chain2noisy = program.chain2noisy
+kernel_chain2noisy = program.chain2noisy.kernel
 def chain2noisy(g, s, tspikes, firing_rate, tau_rise, tau_damp, t, dt, randseeds = None, queue = None, update = False):
   assert g.shape == s.shape, "g and s must have the same shape"
   assert g.shape == tspikes.shape, "g and tspikes must have the same shape"

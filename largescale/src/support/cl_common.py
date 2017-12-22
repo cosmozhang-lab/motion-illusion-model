@@ -11,8 +11,8 @@ program = clspt.compile( os.path.join(thisdir, "cl_common.cl") )
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_add = program.add
-kernel_addscalar = program.addscalar
+kernel_add = program.add.kernel
+kernel_addscalar = program.addscalar.kernel
 def add(*args, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -54,8 +54,8 @@ def add(*args, **kwargs):
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_sub = program.sub
-kernel_subscalar = program.subscalar
+kernel_sub = program.sub.kernel
+kernel_subscalar = program.subscalar.kernel
 def sub(*args, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -97,7 +97,7 @@ def sub(*args, **kwargs):
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_dotmul = program.dotmul
+kernel_dotmul = program.dotmul.kernel
 def dotmul(*args, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -128,7 +128,7 @@ def dotmul(*args, **kwargs):
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_timed = program.timed
+kernel_timed = program.timed.kernel
 def timed(c, x, result, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -151,7 +151,7 @@ def timed(c, x, result, **kwargs):
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_inverse = program.inverse
+kernel_inverse = program.inverse.kernel
 def inverse(c, x, result, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]
@@ -174,7 +174,7 @@ def inverse(c, x, result, **kwargs):
 # @param result: [Variable]<double> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
-kernel_minus = program.minus
+kernel_minus = program.minus.kernel
 def minus(c, x, result, **kwargs):
   if "update" in kwargs:
     with_update = kwargs["update"]

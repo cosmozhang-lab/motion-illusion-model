@@ -41,8 +41,11 @@ class Connection:
     self.input = config.get("input", None) # Input neuron group
     self.shape = config.get("shape", None) # shape
     self.connectivity_pool = config.get("connectivity_pool", None) # connectivity pool
+    if not isinstance(self.connectivity_pool, ConnectivityPool): self.connectivity_pool = ConnectivityPool(self.connectivity_pool)
     self.iconnectivities = config.get("iconnectivities", None) # indexes of connectivities to use
+    if not isinstance(self.iconnectivities, clspt.Variable): self.iconnectivities = clspt.Variable(self.iconnectivities, read_only=True)
     self.kernel = config.get("kernel", None) # connection kernel
+    if not isinstance(self.kernel, Conv2DKernel): self.kernel = Conv2DKernel(self.kernel)
     self.g = clspt.Variable( np.zeros(self.shape).astype(np.double) ) # conductance
     self.s = clspt.Variable( np.zeros(self.shape).astype(np.double) ) # conductance relaxation
   def step(self, t, dt):

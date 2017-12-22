@@ -60,7 +60,7 @@ class Conv2DKernelPool:
 # @param ikernels:    [Variable]<int32> | None
 # @kwarg queue:       [CommandQueue]
 # @kwarg update:      [Boolean] whether to update the output_map
-kernelf_conv2d = program.conv2d
+kernelf_conv2d = program.conv2d.kernel
 def conv2d(input_map, output_map, kernel_pool, ikernels = None, queue = None, update=True):
   if queue is None:
     queue = clspt.queue()

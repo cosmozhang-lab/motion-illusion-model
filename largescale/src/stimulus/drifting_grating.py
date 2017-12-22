@@ -36,6 +36,6 @@ class DFStimulus (StimulusBase):
       img = np.cos(yyy)
       return img
     else:
-      program.drifting_grating(queue or clspt.queue(), (rows*cols,), None, rows, cols, var.swp_dev, sin_o, cos_o, frequency, phase, np.pi)
+      program.drifting_grating.kernel(queue or clspt.queue(), (rows*cols,), None, rows, cols, var.swp_dev, sin_o, cos_o, frequency, phase, np.pi)
       var.update(queue or clspt.queue())
 

@@ -115,9 +115,24 @@ class CLKernel:
     if not isinstance(size, tuple) and not isinstance(size, list):
       size = (size,)
     queue = kwargs["queue"] if queue in kwargs else get_queue()
+    update = kwargs["update"] if update in kwargs else get_queue()
     kargs = [queue, size, None]
-    kargs.extend(args)
+    for i in xrange(len(args)):
+      arg = args[i]
+      meta = self.arg_metas[i]
+      if isinstance(arg, Variable)
+        if meta.isconst:
+          arg = arg.buf_dev
+        else:
+          arg = arg.swp_dev
+      kargs.append(arg)
     apply(self.kernel, kargs)
+    if update:
+      for i in xrange(len(args)):
+        arg = args[i]
+        meta = self.arg_metas[i]
+        if isinstance(arg, Variable) and not meta.isconst:
+          arg.update(queue)
 
 # compile a cl program
 class CLProgram:
@@ -202,8 +217,7 @@ class CLProgram:
       fn_name = kernel.get_info(cl.kernel_info.FUNCTION_NAME)
       if not fn_name in metas: continue
       meta = metas[fn_name]
-      kernel.set_scalar_arg_dtypes([arg.scalar_type for arg in meta["args"]])
-      self.kernel_dict[fn_name] = kernel
+      self.kernel_dict[fn_name] = CLKernel(kernel, meta["args"])
 
   def __getattr__(self, name):
     if name in self.kernel_dict:

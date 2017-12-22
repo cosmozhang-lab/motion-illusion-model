@@ -20,7 +20,7 @@ program = clspt.compile( os.path.join(thisdir, "program.cl") )
 # @param dt:       [double] delta time
 # @kwarg queue:    [CommandQueue]
 # @kwarg update:   [Boolean] whether to update the variables immediately
-kernelf_chain2 = program.chain2
+kernelf_chain2 = program.chain2.kernel
 def chain2(g, s, tau_rise, tau_damp, dt, queue=None, update=True):
   assert(g.shape == s.shape, "g and s must have the same shape")
   nneuron = g.size

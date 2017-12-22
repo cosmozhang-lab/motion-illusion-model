@@ -13,9 +13,10 @@ class DirectConnection (Connection):
     if config is None: config = CommonConfig(kwargs)
     Connection.__init__(self, config)
     self.stimulus = config.get("stimulus", None)
-    self.kernel = config.get("kernel", None)
-    self.kernels = Conv2DKernelPool([self.kernel])
-    self.ikernels = clspt.Variable( np.zeros(self.stimulus.size).astype(np.int32), read_only=True )
+    self.kernels = config.get("kernels", None)
+    if not isinstance(self.kernels, Conv2DKernelPool) self.kernels = Conv2DKernelPool( self.kernels )
+    self.ikernels = config.get("kernels", None)
+    if not isinstance(self.ikernels, clspt.Variable) self.ikernels = clspt.Variable( self.ikernels.astype(np.int32), read_only=True )
     self.stibuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.double), auto_update=True )
     self.convbuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.double), auto_update=True )
   def step(self, t, dt):
