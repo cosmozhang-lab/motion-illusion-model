@@ -279,7 +279,7 @@ class Variable:
       tmp = self._swp_dev
       self._swp_dev = self._buf_dev
       self._buf_dev = tmp
-    if not self.read_only:
+    if not self.readonly:
       self.dirty = True
 
   def fetch(self, queue = None):
