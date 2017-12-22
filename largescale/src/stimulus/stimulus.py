@@ -17,7 +17,7 @@ class StimulusBase:
   # is provided, the function will fill the `var`
   # with the new stimulus pattern. Else it will
   # return a `ndarray` containing the pattern.
-  # @param var:  [Variable]<double> if given, fill this variable
+  # @param var:  [Variable]<float> if given, fill this variable
   def get(self, t, var=None, queue = None):
     if var is None:
       return np.zeros(self.size)

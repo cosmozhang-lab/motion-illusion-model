@@ -42,19 +42,19 @@ __kernel void chain2_with_input(
   int ispike,
   int krows,
   int kcols,
-  __global double *kern,
+  __global float *kern,
   __global int *icncts,
   __global int *cnct_shapes,
-  __global double *cncts,
-  __global double *g_previous, // read buffer
-  __global double *g,          // write buffer
-  __global double *s_previous, // read buffer
-  __global double *s,          // write buffer
-  double tau_rise,
-  double tau_damp,
-  double dt,
-  double exp_rise,
-  double exp_damp
+  __global float *cncts,
+  __global float *g_previous, // read buffer
+  __global float *g,          // write buffer
+  __global float *s_previous, // read buffer
+  __global float *s,          // write buffer
+  float tau_rise,
+  float tau_damp,
+  float dt,
+  float exp_rise,
+  float exp_damp
   )
 {
   int ispkr = (int)(ispike / cols); // row index of the spiking neuron
@@ -91,11 +91,11 @@ __kernel void chain2_with_input(
   int right = MIN(MIN(kright, nright), cols)
   // do iteration
   if (ispkc >= left && ispkc < right && ispkr >= top && ispkr < bottom) {
-    double kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
-    double cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
-    double amp = kern_val * cnct_val;
-    double g_val = g_previous[id];
-    double s_val = s_previous[id];
+    float kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
+    float cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
+    float amp = kern_val * cnct_val;
+    float g_val = g_previous[id];
+    float s_val = s_previous[id];
     tau_rise_inv = 1.0 / tau_rise;
     tau_damp_inv = 1.0 / tau_damp;
     g[id] = exp_damp * g_val + (exp_damp - exp_rise) / (tau_rise_inv - tau_damp_inv) * (tau_rise_inv * tau_damp_inv * amp + tau_damp_inv) * s_val;
@@ -136,13 +136,13 @@ __kernel void input(
   int ispike,
   int krows,
   int kcols,
-  __global double *kern,
+  __global float *kern,
   __global int *icncts,
   __global int *cnct_shapes,
-  __global double *cncts,
-  __global double *s_previous, // read buffer
-  __global double *s,          // write buffer
-  double tau_rise
+  __global float *cncts,
+  __global float *s_previous, // read buffer
+  __global float *s,          // write buffer
+  float tau_rise
   )
 {
   int ispkr = (int)(ispike / cols); // row index of the spiking neuron
@@ -179,10 +179,10 @@ __kernel void input(
   int right = MIN(MIN(kright, nright), cols)
   // do iteration
   if (ispkc >= left && ispkc < right && ispkr >= top && ispkr < bottom) {
-    double kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
-    double cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
-    double amp = kern_val * cnct_val;
-    double s_val = s[id];
+    float kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
+    float cnct_val = cncts[ cnct_offset + coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
+    float amp = kern_val * cnct_val;
+    float s_val = s[id];
     tau_rise_inv = 1.0 / tau_rise;
     s[id] = s_val + tau_rise_inv * amp;
   }

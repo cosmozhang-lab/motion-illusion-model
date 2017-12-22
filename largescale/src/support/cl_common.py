@@ -7,8 +7,8 @@ program = clspt.compile( os.path.join(thisdir, "cl_common.cl") )
 
 # @Function add([CommandQueue queue,] Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
 # @param queue:  [CommandQueue]
-# @param xi:     [Variable]<double> adding variable
-# @param result: [Variable]<double> storing the result
+# @param xi:     [Variable]<float> adding variable
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_add = program.add.kernel
@@ -49,9 +49,9 @@ def add(*args, **kwargs):
   return result
 
 # @Function sub([CommandQueue queue,] Variable y, Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
-# @param y:      [Variable]<double> subtrahend variable
-# @param xi:     [Variable]<double> subtracter variable
-# @param result: [Variable]<double> storing the result
+# @param y:      [Variable]<float> subtrahend variable
+# @param xi:     [Variable]<float> subtracter variable
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_sub = program.sub.kernel
@@ -93,8 +93,8 @@ def sub(*args, **kwargs):
 
 # @Function dotmul([CommandQueue queue,] Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
 # @param queue:  [CommandQueue]
-# @param xi:     [Variable]<double> multiplying variable
-# @param result: [Variable]<double> storing the result
+# @param xi:     [Variable]<float> multiplying variable
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_dotmul = program.dotmul.kernel
@@ -123,9 +123,9 @@ def dotmul(*args, **kwargs):
 
 # @Function timed([CommandQueue queue,] Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
 # @param queue:  [CommandQueue]
-# @param c:      [double] timing coefficient
-# @param x:      [Variable]<double> timing variable
-# @param result: [Variable]<double> storing the result
+# @param c:      [float] timing coefficient
+# @param x:      [Variable]<float> timing variable
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_timed = program.timed.kernel
@@ -147,8 +147,8 @@ def timed(c, x, result, **kwargs):
 
 # @Function inverse([CommandQueue queue,] Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
 # @param queue:  [CommandQueue]
-# @param x:      [Variable]<double> variable to be inversed
-# @param result: [Variable]<double> storing the result
+# @param x:      [Variable]<float> variable to be inversed
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_inverse = program.inverse.kernel
@@ -170,8 +170,8 @@ def inverse(c, x, result, **kwargs):
 
 # @Function minus([CommandQueue queue,] Variable x1, Variable x2, ..., Variable xn, Variable result, **kwargs)
 # @param queue:  [CommandQueue]
-# @param x:      [Variable]<double> variable to be minused
-# @param result: [Variable]<double> storing the result
+# @param x:      [Variable]<float> variable to be minused
+# @param result: [Variable]<float> storing the result
 # @kwarg queue:  [CommandQueue]
 # @kwarg update: [Boolean] whether to update the result variable immediately (default is True)
 kernel_minus = program.minus.kernel

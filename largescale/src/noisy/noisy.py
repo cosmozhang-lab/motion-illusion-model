@@ -29,9 +29,9 @@ class NoisyConnection (Connection):
     if config is None: config = CommonConfig(kwargs)
     Connection.__init__(self, config)
     self.firing_rate = config.get("firing_rate", 0.0)
-    self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.double), auto_update = True )
-    self.randseeds = clspt.Variable( np.zeros(self.shape).astype(np.double), auto_update = True )
+    self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
+    self.randseeds = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
   def step(self, t, dt):
-    self.randseeds.fill( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.double) )
+    self.randseeds.fill( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.float32) )
     program.chain2noisy(self.g, self.s, self.tspikes, self.firing_rate, self.tau_rise, self.tau_damp, t, dt, self.randseeds)
 

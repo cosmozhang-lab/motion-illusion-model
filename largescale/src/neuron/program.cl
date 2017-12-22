@@ -15,24 +15,24 @@
  * @param exp_damp: exp( -dt / tau_damp ). This should be computed on CPU for better precision
  */
 __kernel void chain2(
-  __global double *g_previous, // read buffer
-  __global double *g,          // write buffer
-  __global double *s_previous, // read buffer
-  __global double *s,          // write buffer
-  double tau_rise,
-  double tau_damp,
-  double dt,
-  double exp_rise,
-  double exp_damp)
+  __global float *g_previous, // read buffer
+  __global float *g,          // write buffer
+  __global float *s_previous, // read buffer
+  __global float *s,          // write buffer
+  float tau_rise,
+  float tau_damp,
+  float dt,
+  float exp_rise,
+  float exp_damp)
 {
   int i = get_global_id(0);
-  double g_val = g_previous[i];
-  double s_val = s_previous[i];
-  //double tr = dt / tau_rise;
-  //double etr = exp_rise;
-  //double td = dt / tau_damp;
-  //double etd = exp_damp;
-  //double cst = tau_rise / (tau_damp - tau_rise) * (etd - etr);
+  float g_val = g_previous[i];
+  float s_val = s_previous[i];
+  //float tr = dt / tau_rise;
+  //float etr = exp_rise;
+  //float td = dt / tau_damp;
+  //float etd = exp_damp;
+  //float cst = tau_rise / (tau_damp - tau_rise) * (etd - etr);
   //g[i] = g_val * etd + cst * s_val;
   //s[i] = s_val * etr;
   g[i] = g_val * exp_damp + tau_rise * (exp_damp - exp_rise) / (tau_damp - tau_rise) * s_val;
@@ -125,30 +125,30 @@ __kernel void chain2(
  * @param dt:                  delta time
  */
 __kernel void rk2voltage(
-  __global double *v_previous, // read buffer
-  __global double *v,          // write buffer
-  __global double *tspikes,
-  __global double *t_refs,
-  __global double *alpha0,
-  __global double *beta0,
-  __global double *alpha1,
-  __global double *beta1,
-  double v_thre,
-  double v_reset,
-  double t,
-  double dt
+  __global float *v_previous, // read buffer
+  __global float *v,          // write buffer
+  __global float *tspikes,
+  __global float *t_refs,
+  __global float *alpha0,
+  __global float *beta0,
+  __global float *alpha1,
+  __global float *beta1,
+  float v_thre,
+  float v_reset,
+  float t,
+  float dt
 ) {
   int i = get_global_id(0);
-  double v_val = v_previous[i];
-  double tref = t_refs[i];
-  double tspk = tspikes[i];
-  double holdtime = tspk + tref - t;
-  double t_start = t;
-  double t_end = t + dt;
-  double a0 = alpha0[i];
-  double b0 = beta0[i];
-  double a1 = alpha1[i];
-  double b1 = beta1[i];
+  float v_val = v_previous[i];
+  float tref = t_refs[i];
+  float tspk = tspikes[i];
+  float holdtime = tspk + tref - t;
+  float t_start = t;
+  float t_end = t + dt;
+  float a0 = alpha0[i];
+  float b0 = beta0[i];
+  float a1 = alpha1[i];
+  float b1 = beta1[i];
   if (holdtime > 0) {
     // if we are still in refactory period
     // at the start of the time bin
@@ -159,11 +159,11 @@ __kernel void rk2voltage(
     // if in this time bin we have exited
     // the refactory period, we start ev-
     // olution.
-    double ddt = t_end - t_start;
-    double k1 = a0 * v_val + b0;
-    double k2 = a1 * (v_val + k1 * ddt) + b1;
-    double k = (k1 + k2) * 0.5;
-    double v_new = v_val + k * ddt;
+    float ddt = t_end - t_start;
+    float k1 = a0 * v_val + b0;
+    float k2 = a1 * (v_val + k1 * ddt) + b1;
+    float k = (k1 + k2) * 0.5;
+    float v_new = v_val + k * ddt;
     if (v_new > v_thre) {
       // Voltage has rised beyond the threshold.
       // Neuron spikes in this time bin. And will

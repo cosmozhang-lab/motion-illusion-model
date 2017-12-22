@@ -5,8 +5,15 @@
  * Using "same" padding principle
  * For detailed comment, refer to convolution.py
  */
-__kernel void conv2d(int rows, int cols, __global double *input_map, __global double *kernels, __global int *kernel_shapes, __global int *ikernels, __global double *output_map)
-{
+__kernel void conv2d(
+  int rows,
+  int cols,
+  __global float *input_map,
+  __global float *kernels,
+  __global int *kernel_shapes,
+  __global int *ikernels,
+  __global float *output_map
+) {
   int id = get_global_id(0);
   int ir = (int)(id / cols);
   int ic = id - ir * cols;
@@ -23,7 +30,7 @@ __kernel void conv2d(int rows, int cols, __global double *input_map, __global do
   int ktop  = ir + hkrows - krows + 1;
   int kleft = ic + hkcols - kcols + 1;
   // start to convolve
-  double res = 0.0;
+  float res = 0.0;
   for (int r = 0; r < krows; r++) {
     int mr = ktop + r;
     if (mr < 0) continue;

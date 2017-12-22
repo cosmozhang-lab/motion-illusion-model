@@ -12,7 +12,7 @@ class Conv2DKernel:
       self.kernel = init.kernel
       self.kernel_dev = init.kernel_dev
     elif isinstance(init, np.ndarray):
-      self.kernel = init.astype(np.double)
+      self.kernel = init.astype(np.float32)
       self.kernel_dev = clspt.Variable(self.kernel, read_only = True)
     else:
       raise TypeError("Initial value must be either a Conv2DKernel or a ndarray")
@@ -29,15 +29,15 @@ class Conv2DKernelPool:
         self.kernels.append(kernel.kernel)
         self.shapes.append(kernel.kernel_shape)
       elif isinstance(kernel, np.ndarray):
-        self.kernels.append(kernel.astype(np.double))
+        self.kernels.append(kernel.astype(np.float32))
         self.shapes.append(kernel.shape)
       else:
         raise TypeError("Kernel must be either a Conv2DKernel or a ndarray")
-    self.kernels_host = np.zeros( (np.sum([np.prod(shape) for shape in self.shapes]),) ).astype(np.double)
+    self.kernels_host = np.zeros( (np.sum([np.prod(shape) for shape in self.shapes]),) ).astype(np.float32)
     self.shapes_host = np.zeros( (2*len(self.shapes),) ).astype(np.int32)
     i = 0
     for kernel in self.kernels:
-      kernel = kernel.ravel().astype(np.double)
+      kernel = kernel.ravel().astype(np.float32)
       self.kernels_host[i:(i+kernel.size)] = kernel
       i = i + kernel.size
     i = 0
@@ -54,8 +54,8 @@ class Conv2DKernelPool:
 # and the index of the kernel to use for each function is specified in 
 # `ikernels`. So input_map, output_map and ikernels should have the same 
 # shape.
-# @param input_map:   [Variable]<double>
-# @param output_pam:  [Variable]<double>
+# @param input_map:   [Variable]<float>
+# @param output_pam:  [Variable]<float>
 # @param kernel_pool: [Conv2DKernelPool] | [Conv2DKernel]
 # @param ikernels:    [Variable]<int32> | None
 # @kwarg queue:       [CommandQueue]

@@ -24,7 +24,7 @@ class ConnectivityPool:
         raise ValueError("Connectivity shuold be a 2D matrix!")
     self.cncts = connectivities
     self.cnct_shapes_host = np.zeros(2*self.num).astype(np.int32)
-    self.cncts_host = np.zeros(np.sum([cnct.size for cnct in self.cncts])).astype(np.double)
+    self.cncts_host = np.zeros(np.sum([cnct.size for cnct in self.cncts])).astype(np.float32)
     self.cnct_shapes_dev = clspt.Variable( self.cnct_shapes_host, read_only = True )
     self.cncts_dev = clspt.Variable( self.cnct_shapes_host, read_only = True )
 
@@ -46,8 +46,8 @@ class Connection:
     if not isinstance(self.iconnectivities, clspt.Variable): self.iconnectivities = clspt.Variable(self.iconnectivities, read_only=True)
     self.kernel = config.get("kernel", None) # connection kernel
     if not isinstance(self.kernel, Conv2DKernel): self.kernel = Conv2DKernel(self.kernel)
-    self.g = clspt.Variable( np.zeros(self.shape).astype(np.double) ) # conductance
-    self.s = clspt.Variable( np.zeros(self.shape).astype(np.double) ) # conductance relaxation
+    self.g = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance
+    self.s = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance relaxation
   def step(self, t, dt):
     last_t = t
     for i_nspikes in xrange(self.input.nspikes):
@@ -81,15 +81,15 @@ spike. This does make sense. The process is:
     `s` = `s` + `amp` / `tau_r`
     ...
     `chain2` on `t_spike_last` to `t + dt`
-@param g:                 [Variable]<double> the conductances
-@param s:                 [Variable]<double> the relaxation items (ds/dt receives the spike pulse directly)
+@param g:                 [Variable]<float> the conductances
+@param s:                 [Variable]<float> the relaxation items (ds/dt receives the spike pulse directly)
 @param ispike:            [int] which neuron spiked
 @param kernel:            [Conv2DKernel] the input mapping kernel
 @param connectivity_pool: [ConnectivityPool] the input connectivity mapping pool
 @param iconnectivities:   [Variable]<int> indexes of the connectivity mapping to use
-@param tau_rise:          [double] time constance of conductance rising
-@param tau_damp:          [double] time constance of conductance damping
-@param dt:                [double] delta time
+@param tau_rise:          [float] time constance of conductance rising
+@param tau_damp:          [float] time constance of conductance damping
+@param dt:                [float] delta time
 @kwarg queue:             [CommandQueue]
 @kwarg update:            [Boolean] whether to update the variables immediately
 [WARNING] This function updates the Variable buffer automatically!

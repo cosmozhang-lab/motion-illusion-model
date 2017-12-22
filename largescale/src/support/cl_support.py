@@ -36,7 +36,9 @@ class CLKernelArgMeta:
     if "typestr" in kwargs:
       def word2type(word):
         if word == "double":
-          return np.double
+          return np.float64
+        elif word == "float":
+          return np.float32
         elif word == "int":
           return np.int32
         elif word == "unsigned int":
@@ -74,7 +76,7 @@ class CLKernelArgMeta:
       self.isconst = "const" in argwords
       self.dtype = None
       typeword = ""
-      typewords = ["unsigned", "int", "double", "long"]
+      typewords = ["unsigned", "int", "double", "float" "long"]
       for word in argwords:
         if word in typewords:
           typeword += " " + word
@@ -120,7 +122,7 @@ class CLKernel:
     for i in xrange(len(args)):
       arg = args[i]
       meta = self.arg_metas[i]
-      if isinstance(arg, Variable)
+      if isinstance(arg, Variable):
         if meta.isconst:
           arg = arg.buf_dev
         else:
@@ -327,11 +329,11 @@ def map_kernel(expr, name = None):
     def toString(self):
       if self.isbuf:
         if self.isout:
-          return "__global double * " + self.name
+          return "__global float * " + self.name
         else:
-          return "__global const double * " + self.name
+          return "__global const float * " + self.name
       else:
-        return "double " + self.name
+        return "float " + self.name
   if name is None: name = "_map_kernel_function" # the default name
   result_param_name = "_map_kernel_function_result" # name of the output buffer argument
   params = []

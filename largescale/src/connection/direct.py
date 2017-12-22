@@ -17,8 +17,8 @@ class DirectConnection (Connection):
     if not isinstance(self.kernels, Conv2DKernelPool) self.kernels = Conv2DKernelPool( self.kernels )
     self.ikernels = config.get("kernels", None)
     if not isinstance(self.ikernels, clspt.Variable) self.ikernels = clspt.Variable( self.ikernels.astype(np.int32), read_only=True )
-    self.stibuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.double), auto_update=True )
-    self.convbuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.double), auto_update=True )
+    self.stibuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.float32), auto_update=True )
+    self.convbuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.float32), auto_update=True )
   def step(self, t, dt):
     self.stimulus.get(t, var = self.stibuf)
     conv2d(self.stibuf, self.convbuf, self.kernels, self.ikernels, update=True)

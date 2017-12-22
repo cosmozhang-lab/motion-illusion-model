@@ -43,7 +43,7 @@ def chain2noisy(g, s, tspikes, firing_rate, tau_rise, tau_damp, t, dt, randseeds
   assert g.shape == s.shape, "g and s must have the same shape"
   assert g.shape == tspikes.shape, "g and tspikes must have the same shape"
   if randseeds is None:
-    randseeds = clspt.Variable( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.double), read_only = True )
+    randseeds = clspt.Variable( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.float32), read_only = True )
   assert g.shape == randseeds.shape, "g and tspikes must have the same shape"
   if queue is None: queue = clspt.queue()
   nneurons = np.prod(g.shape)

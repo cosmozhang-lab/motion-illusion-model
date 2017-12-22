@@ -19,7 +19,7 @@ def test_v1():
   import time
   t = time.time()
   dt = 0.001
-  ts = np.arange(1000).astype(np.double) * dt
+  ts = np.arange(1000).astype(np.float32) * dt
   for tt in ts:
     n.step(tt, dt)
   print time.time() - t
@@ -30,13 +30,13 @@ def test_cl():
   import largescale.src.support.cl_support as clspt
   import numpy as np
   import time
-  n = 30
+  n = 10
   ctx = clspt.context()
   prg = cl.Program(ctx, """
-  inline double m_add(double a, double b) {
+  inline float m_add(float a, float b) {
     return a + b;
   }
-  __kernel void sum(__global const double *a_g, __global const double *b_g, __global double *res_g)
+  __kernel void sum(__global const float *a_g, __global const float *b_g, __global float *res_g)
   {
     int gid = get_global_id(0);
     res_g[gid] = m_add(a_g[gid], b_g[gid]); //a_g[gid] + b_g[gid];
@@ -49,10 +49,10 @@ def test_cl():
   res_gs = []
   ni = 1
   for i in xrange(ni):
-    # a_np = np.random.rand(n).astype(np.double)
-    # b_np = np.random.rand(n).astype(np.double)
-    a_np = np.arange(n).astype(np.double)
-    b_np = np.arange(n).astype(np.double)
+    # a_np = np.random.rand(n).astype(np.float32)
+    # b_np = np.random.rand(n).astype(np.float32)
+    a_np = np.arange(n).astype(np.float32)
+    b_np = np.arange(n).astype(np.float32)
     a_gs.append( cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf = a_np) )
     b_gs.append( cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf = b_np) )
     res_gs.append( cl.Buffer(ctx, mf.WRITE_ONLY, a_np.nbytes) )
@@ -65,6 +65,7 @@ def test_cl():
   # cl.wait_for_events([cl.enqueue_marker(q) for q in queues])
   res_np = np.empty_like(a_np)
   cl.enqueue_copy(queues[0], res_np, res_gs[0])
+  print res_np
   cl.enqueue_barrier(queues[-1])
   print time.time() - t
 
@@ -105,12 +106,12 @@ def test_conv2d():
   import cv2
   im = cv2.imread("/home/share/work/outputs/testimg.jpg")
   im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-  imv = clspt.Variable(im.astype(np.double))
-  imo = clspt.Variable(np.empty_like(im).astype(np.double))
+  imv = clspt.Variable(im.astype(np.float32))
+  imo = clspt.Variable(np.empty_like(im).astype(np.float32))
   kernels = [
     np.array([[1,0,-1],[0,0,0],[-1,0,1]]),
     np.array([[-1,0,1],[0,0,0],[1,0,-1]]),
-    np.zeros([10,10]).astype(np.double) + 1.0/100.0
+    np.zeros([10,10]).astype(np.float32) + 1.0/100.0
   ]
   nkernels = len(kernels)
   kernels = conv.Conv2DKernelPool(kernels)
@@ -129,11 +130,11 @@ def test_map_kernel():
   import numpy as np
   kern = clspt.map_kernel("a[i] * 1.0 + b[i] * c")
   n = 10
-  a = clspt.Variable( np.arange(n).astype(np.double) + 10.0 )
+  a = clspt.Variable( np.arange(n).astype(np.float32) + 10.0 )
   b = clspt.Variable( 2.0 - a.buf_host )
   c = 1.0
   r = clspt.Variable( np.zeros_like(a.buf_host) )
   kern(a=a, b=b, c=c, out=r)
   print r.fetch()
 
-test_cl()
+test_conv2d()

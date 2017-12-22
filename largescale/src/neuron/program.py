@@ -13,11 +13,11 @@ program = clspt.compile( os.path.join(thisdir, "program.cl") )
 # The process can be expressed as ODEs:
 #     tau_damp * dg/dt = - g + s
 #     tau_rise * ds/dt = - s + sum( delta(t - t_spike) )
-# @param g:        [Variable]<double> the conductances
-# @param s:        [Variable]<double> the relaxation items (ds/dt receives the spike pulse directly)
-# @param tau_rise: [double] time constance of conductance rising
-# @param tau_damp: [double] time constance of conductance damping
-# @param dt:       [double] delta time
+# @param g:        [Variable]<float> the conductances
+# @param s:        [Variable]<float> the relaxation items (ds/dt receives the spike pulse directly)
+# @param tau_rise: [float] time constance of conductance rising
+# @param tau_damp: [float] time constance of conductance damping
+# @param dt:       [float] delta time
 # @kwarg queue:    [CommandQueue]
 # @kwarg update:   [Boolean] whether to update the variables immediately
 kernelf_chain2 = program.chain2.kernel

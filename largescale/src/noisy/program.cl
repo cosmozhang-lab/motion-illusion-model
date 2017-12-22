@@ -31,28 +31,28 @@
  * @param randseeds:   random seed
  */
 __kernel void chain2noisy(
-  __global double *g_previous, // read buffer
-  __global double *g,          // write buffer
-  __global double *s_previous, // read buffer
-  __global double *s,          // write buffer
-  __global double *tspikes,    // spiking times
-  double firing_rate,
-  double tau_rise,
-  double tau_damp,
-  double t,
-  double dt,
+  __global float *g_previous, // read buffer
+  __global float *g,          // write buffer
+  __global float *s_previous, // read buffer
+  __global float *s,          // write buffer
+  __global float *tspikes,    // spiking times
+  float firing_rate,
+  float tau_rise,
+  float tau_damp,
+  float t,
+  float dt,
   __global unsigned int *randseeds)
 {
   int i = get_global_id(0);
-  double g_val = g_previous[i];
-  double s_val = s_previous[i];
+  float g_val = g_previous[i];
+  float s_val = s_previous[i];
   unsigned int rndnum = randseeds[i];
-  double tspk = tspikes[i];
-  double spkitv = tspk - t; // spike interval
-  double exp_rise;
-  double exp_damp;
-  double t_end = t + dt;
-  double tau_rise_inv = 1.0 / tau_rise;
+  float tspk = tspikes[i];
+  float spkitv = tspk - t; // spike interval
+  float exp_rise;
+  float exp_damp;
+  float t_end = t + dt;
+  float tau_rise_inv = 1.0 / tau_rise;
   while (true) {
     // If next spike is beyond this time bin, we only
     // process to the end of this time bin.
@@ -70,7 +70,7 @@ __kernel void chain2noisy(
     s_val = s_val + tau_rise_inv;
     // update the next spike
     rndnum = rand(rndnum);
-    spkitv = -log( ((double)rndnum) / ((double)RAND_MAX+1.0) ) / firing_rate;
+    spkitv = -log( ((float)rndnum) / ((float)RAND_MAX+1.0) ) / firing_rate;
     tspk += spkitv;
   }
   // update the result
