@@ -1,6 +1,11 @@
 # Unit testings
 
+import sys, os
+thisdir = os.path.split(os.path.realpath(__file__))[0]
+sys.path.append( os.path.join(thisdir, "../..") )
+
 from largescale.src.support.common import CommonConfig
+
 
 def test_v1():
   from largescale.src.v1 import V1DirectNeuronGroup
@@ -23,7 +28,6 @@ def test_v1():
   for tt in ts:
     n.step(tt, dt)
   print time.time() - t
-
 
 def test_cl():
   import pyopencl as cl
@@ -104,7 +108,10 @@ def test_conv2d():
   import time
   import numpy as np
   import cv2
-  im = cv2.imread("/home/share/work/outputs/testimg.jpg")
+  # import matplotlib.pyplot as plt
+  import pylab as plt
+  # im = cv2.imread("/home/share/work/outputs/testimg.jpg")
+  im = cv2.imread("./tmp/testimg.jpg")
   im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
   imv = clspt.Variable(im.astype(np.float32))
   imo = clspt.Variable(np.empty_like(im).astype(np.float32))
@@ -123,7 +130,9 @@ def test_conv2d():
   print "Time used: ", time.time() - t
   imout = imo.fetch()
   imout = imout.astype(np.uint8)
-  cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
+  # cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
+  plt.imshow(imout)
+  plt.show()
 
 def test_map_kernel():
   import largescale.src.support.cl_support as clspt
@@ -137,13 +146,14 @@ def test_map_kernel():
   kern(a=a, b=b, c=c, out=r)
   print r.fetch()
 
-def test_model():
+def test_model_hypcol():
   from largescale.src.neuron import V1DirectNeuronGroup, T_E, T_I
   from largescale.src.network import PinwheelNetwork
   import matplotlib.pyplot as plt
   from largescale.src.support.plots.colormap import circle_colormap
   from largescale.src.support.plots.colormap import hsv2rgb
   import numpy as np
+  import cv2
   config = CommonConfig({})
   net = PinwheelNetwork()
   # plt.figure(1)
@@ -161,8 +171,17 @@ def test_model():
     img[indexes] = g
     imb[indexes] = b
   im = np.stack([imr,img,imb], axis=2)
+  # cv2.imwrite("/home/share/work/outputs/model_test.tiff", (im*255.0).astype(np.uint8))
   plt.imshow(im)
   plt.show()
+
+def test_model():
+  from largescale.src.neuron import V1DirectNeuronGroup, T_E, T_I
+  from largescale.src.network import PinwheelNetwork
+  import matplotlib.pyplot as plt
+  from largescale.src.support.plots.colormap import circle_colormap
+  from largescale.src.support.plots.colormap import hsv2rgb
+  import numpy as np
 
 def test_log():
   import numpy as np

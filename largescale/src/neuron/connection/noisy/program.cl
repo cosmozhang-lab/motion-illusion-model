@@ -36,6 +36,8 @@ __kernel void chain2noisy(
   __global float *s_previous, // read buffer
   __global float *s,          // write buffer
   __global float *tspikes,    // spiking times
+  __global float *amp_pool,
+  __global int *amp_specs,
   __global float *firing_rate_pool,
   __global int *firing_rate_specs,
   __global float *tau_rise_pool,
@@ -52,6 +54,7 @@ __kernel void chain2noisy(
   float firing_rate = firing_rate_pool[firing_rate_specs[i]];
   float tau_rise = tau_rise_pool[tau_rise_specs[i]];
   float tau_damp = tau_damp_pool[tau_damp_specs[i]];
+  float amp = amp_pool[amp_specs[i]];
   unsigned int rndnum = randseeds[i];
   float tspk = tspikes[i];
   float spkitv = tspk - t; // spike interval
@@ -73,7 +76,7 @@ __kernel void chain2noisy(
     // If next spike is beyond this time bin, we stop
     if (tspk > t_end) break;
     // add next spike input
-    s_val = s_val + tau_rise_inv;
+    s_val = s_val + amp * tau_rise_inv;
     // update the next spike
     rndnum = rand(rndnum);
     spkitv = -logf( ((float)rndnum) / ((float)RAND_MAX+1.0) ) / firing_rate;

@@ -5,7 +5,7 @@ import largescale.src.support.cl_support as clspt
 from largescale.src.support.common import CommonConfig
 from largescale.src.neuron.neuron.program import chain2
 from largescale.src.support.convolution import Conv2DKernel
-from largescale.src.support.common import ValuePoolSpec, ValuePool
+from largescale.src.support.cl_support import ValuePoolSpec, ValuePool
 import program
 
 

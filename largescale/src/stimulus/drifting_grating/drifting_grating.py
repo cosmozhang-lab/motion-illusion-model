@@ -1,4 +1,4 @@
-from stimulus import StimulusBase
+from largescale.src.stimulus import StimulusBase
 import numpy as np
 import largescale.src.support.geometry as geo
 from largescale.src.support.common import CommonConfig
