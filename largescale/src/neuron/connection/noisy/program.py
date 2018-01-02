@@ -4,9 +4,7 @@ from largescale.src.support.common import CommonConfig
 import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]
-program_file = open( os.path.join(thisdir, "program.cl") )
-program = cl.Program(clspt.context(), program_file.read()).build()
-program_file.close()
+program = clspt.compile( os.path.join(thisdir, "program.cl") )
 
 """
 Calcuate the conductance decaying process
@@ -39,7 +37,7 @@ So the spike interval `tau` obeys distribution:
 @param randseeds:   random seed
 """
 kernel_chain2noisy = program.chain2noisy.kernel
-def chain2noisy(g, s, tspikes, firing_rate, tau_rise, tau_damp, t, dt, randseeds = None, queue = None, update = False):
+def chain2noisy(g, s, tspikes, firing_rate_pool, tau_rise_pool, tau_damp_pool, t, dt, randseeds = None, queue = None, update = False):
   assert g.shape == s.shape, "g and s must have the same shape"
   assert g.shape == tspikes.shape, "g and tspikes must have the same shape"
   if randseeds is None:
@@ -47,7 +45,21 @@ def chain2noisy(g, s, tspikes, firing_rate, tau_rise, tau_damp, t, dt, randseeds
   assert g.shape == randseeds.shape, "g and tspikes must have the same shape"
   if queue is None: queue = clspt.queue()
   nneurons = np.prod(g.shape)
-  kernel_chain2noisy(queue, (nneurons,), None, g.buf_dev, g.swp_dev, s.buf_dev, s.swp_dev, tspikes.buf_dev, firing_rate, tau_rise, tau_damp, t, dt, randseeds.buf_dev)
+  kernel_chain2noisy(queue, (nneurons,), None,
+    g.buf_dev,
+    g.swp_dev,
+    s.buf_dev,
+    s.swp_dev,
+    tspikes.buf_dev,
+    firing_rate_pool.buf,
+    firing_rate_pool.spec.buf,
+    tau_rise_pool.buf,
+    tau_rise_pool.spec.buf,
+    tau_damp_pool.buf,
+    tau_damp_pool.spec.buf,
+    t,
+    dt,
+    randseeds.buf_dev)
   if update:
     g.update(queue)
     s.update(queue)

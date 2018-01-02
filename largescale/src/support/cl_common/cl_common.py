@@ -1,5 +1,5 @@
 import pyopencl as cl
-import cl_support as clspt
+import largescale.src.support.cl_support as clspt
 import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]

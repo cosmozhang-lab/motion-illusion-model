@@ -18,9 +18,10 @@
 import numpy as np
 import largescale.src.support.cl_support as clspt
 from largescale.src.support.common import CommonConfig
-from largescale.src.neuron.program import chain2
+from largescale.src.neuron.neuron.program import chain2
 from largescale.src.support.convolution import Conv2DKernel
-from largescale.src.connection import Connection
+from largescale.src.neuron.connection import Connection
+from largescale.src.support.common import ValuePool
 import program
 import os
 
@@ -29,9 +30,10 @@ class NoisyConnection (Connection):
     if config is None: config = CommonConfig(kwargs)
     Connection.__init__(self, config)
     self.firing_rate = config.get("firing_rate", 0.0)
+    self.firing_rate_pool = config.get("firing_rate_pool", ValuePool([self.firing_rate], np.zeros(self.shape)))
     self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
     self.randseeds = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
   def step(self, t, dt):
     self.randseeds.fill( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.float32) )
-    program.chain2noisy(self.g, self.s, self.tspikes, self.firing_rate, self.tau_rise, self.tau_damp, t, dt, self.randseeds)
+    program.chain2noisy(self.g, self.s, self.tspikes, self.firing_rate_pool, self.tau_rise_pool, self.tau_damp_pool, t, dt, self.randseeds)
 

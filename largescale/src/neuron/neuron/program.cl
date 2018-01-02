@@ -19,8 +19,10 @@ __kernel void chain2(
   __global float *g,          // write buffer
   __global float *s_previous, // read buffer
   __global float *s,          // write buffer
-  float tau_rise,
-  float tau_damp,
+  __global float *tau_rise_pool,
+  __global int *tau_rise_specs,
+  __global float *tau_damp_pool,
+  __global int *tau_damp_specs,
   float dt,
   float exp_rise,
   float exp_damp)
@@ -28,6 +30,8 @@ __kernel void chain2(
   int i = get_global_id(0);
   float g_val = g_previous[i];
   float s_val = s_previous[i];
+  float tau_rise = tau_rise_pool[tau_rise_specs[i]];
+  float tau_damp = tau_damp_pool[tau_damp_specs[i]];
   //float tr = dt / tau_rise;
   //float etr = exp_rise;
   //float td = dt / tau_damp;
@@ -128,7 +132,8 @@ __kernel void rk2voltage(
   __global float *v_previous, // read buffer
   __global float *v,          // write buffer
   __global float *tspikes,
-  __global float *t_refs,
+  __global float *t_ref_pool,
+  __global int *t_ref_specs,
   __global float *alpha0,
   __global float *beta0,
   __global float *alpha1,
@@ -140,7 +145,7 @@ __kernel void rk2voltage(
 ) {
   int i = get_global_id(0);
   float v_val = v_previous[i];
-  float tref = t_refs[i];
+  float tref = t_ref_pool[t_ref_specs[i]];
   float tspk = tspikes[i];
   float holdtime = tspk + tref - t;
   float t_start = t;

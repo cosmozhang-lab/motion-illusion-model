@@ -83,7 +83,7 @@ def test_dfsti():
   import numpy as np
   import cv2
   config = CommonConfig({
-    "orientation": np.pi / 6,
+    "orientation": 30,
     "frequency": 0.01,
     "speed": 100.0,
     "phase": 0.0
@@ -138,17 +138,75 @@ def test_map_kernel():
   print r.fetch()
 
 def test_model():
-  from largescale.src.v1 import V1DirectNeuronGroup, T_E, T_I
+  from largescale.src.neuron import V1DirectNeuronGroup, T_E, T_I
+  from largescale.src.network import PinwheelNetwork
+  import matplotlib.pyplot as plt
+  from largescale.src.support.plots.colormap import circle_colormap
+  from largescale.src.support.plots.colormap import hsv2rgb
   import numpy as np
-  config = CommonConfig({
-    "tau_rise_gaba1": 0.1,
-    "tau_damp_gaba1": 0.1,
-    "tau_rise_gaba2": 0.1,
-    "tau_damp_gaba2": 0.1,
-    "tau_rise_ampa": 0.1,
-    "tau_damp_ampa": 0.1,
-    "tau_rise_nmda": 0.1,
-    "tau_damp_nmda": 0.1
-  })
+  config = CommonConfig({})
+  net = PinwheelNetwork()
+  # plt.figure(1)
+  # plt.imshow(net.iclusters.astype(np.float32), cmap=circle_colormap())
+  # plt.colorbar()
+  # plt.figure(2)
+  # plt.imshow(net.neuron_types.astype(np.float32))
+  imr = np.zeros(net.shape).astype(np.float32)
+  img = np.zeros(net.shape).astype(np.float32)
+  imb = np.zeros(net.shape).astype(np.float32)
+  for i in xrange(net.cluster_num):
+    (r,g,b) = hsv2rgb((float(i)/float(net.cluster_num)*360.0, 1, 1))
+    indexes = np.logical_and(net.iclusters==i, net.neuron_types==T_E)
+    imr[indexes] = r
+    img[indexes] = g
+    imb[indexes] = b
+  im = np.stack([imr,img,imb], axis=2)
+  plt.imshow(im)
+  plt.show()
 
-test_geo()
+def test_log():
+  import numpy as np
+  import largescale.src.support.cl_support as clspt
+  import matplotlib.pyplot as plt
+  xx = np.exp(np.arange(9) - 5).astype(np.float32)
+  yy = np.log(xx)
+  program = clspt.compile(code="""
+  #include <std.cl>
+  __kernel void calclog(__global const float *x, __global float *y) {
+    int i = get_global_id(0);
+    y[i] = logf(x[i]);
+  }
+  """)
+  xxv = clspt.Variable(xx)
+  yyv = clspt.Variable(np.zeros_like(xx))
+  program.calclog(xxv.size, xxv, yyv)
+  yyvv = yyv.fetch()
+  plt.plot(xx, yy)
+  plt.plot(xx, yyvv)
+  plt.grid(True)
+  plt.show()
+
+def test_hsv2rgb():
+  import numpy as np
+  from largescale.src.support.plots.colormap import hsv2rgb
+  from largescale.src.support.geometry import gen_coordinates
+  import matplotlib.pyplot as plt
+  size = (512,512)
+  [coory, coorx] = gen_coordinates(size, center_zero=True)
+  im = np.zeros([size[0], size[1], 3]).astype(np.float32)
+  h = np.arctan(coory/coorx) / np.pi * 180.0
+  h[coorx<0] += 180.0
+  h += 90.0
+  h[np.isnan(h)] = 0
+  s = np.sqrt(coorx**2+coory**2)
+  s = s / np.max(s)
+  v = np.ones_like(h)
+  for i in xrange(size[0]):
+    for j in xrange(size[1]):
+      im[i,j,:] = hsv2rgb((h[i,j],s[i,j],v[i,j]))
+  plt.imshow(im)
+  plt.colorbar()
+  plt.show()
+
+
+test_model()

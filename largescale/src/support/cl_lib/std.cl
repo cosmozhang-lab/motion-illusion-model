@@ -23,6 +23,38 @@
  *     * Ansi C: Watcom, Digital Mars, CodeWarrior, IBM VisualAge C/C++
  * We are using `glibc` parameters
  */
-unsigned int rand(unsigned int seed) {
+inline unsigned int rand(unsigned int seed) {
   return 1103515245U * seed + 12345U;
 }
+
+/**
+ * Calculate natural logarithm
+ * We use Taylor expansion of log to calculate:
+ *     log(1+x) = x - x^2/2 + x^3/3 - ... + o(x^n)
+ * See: http://blog.csdn.net/aaronand/article/details/50269131
+ */
+inline float logf(float x) {
+  const float ln10 = 2.30258509299404609679094392;
+  const float eps = 0.000000000000000000000000001;
+  int nln10 = 0;
+  while (x > 10.0) {
+    x = x / 10.0;
+    nln10++;
+  }
+  float t = (x-1)/(x+1);
+  float t02 = t*t;
+  float res = 0.0;
+  int k = 1;
+  while (true) {
+    res += t / k;
+    k += 2;
+    t = t * t02;
+    if (t < eps && t > -eps) break;
+  }
+  res = res * 2 + nln10 * ln10;
+  return res;
+}
+
+
+
+

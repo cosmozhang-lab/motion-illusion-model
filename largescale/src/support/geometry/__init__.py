@@ -1,3 +1,3 @@
 # Package: largescale.src.support.geometry
 
-from geometry import gen_coordinates
+from common import gen_coordinates

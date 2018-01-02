@@ -18,8 +18,8 @@ class DFStimulus (StimulusBase):
     # where: y'' = 2pi * (y' - speed * t) * frequency - phase
     #            = 2pi * (y' * frequency) - (speed * t * frequency + phase)
     # where: y' = x*sin(o) + y*cos(o)
-    cos_o = np.cos(self.orientation)
-    sin_o = np.sin(self.orientation)
+    cos_o = np.cos(self.orientation / 180.0 * np.pi)
+    sin_o = np.sin(self.orientation / 180.0 * np.pi)
     phase = self.speed * t * self.frequency + self.phase
     frequency = self.frequency
     rows = self.size[0]

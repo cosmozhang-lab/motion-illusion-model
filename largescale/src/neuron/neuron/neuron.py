@@ -29,6 +29,8 @@ class NeuronGroup:
   def __init__(self, nshape, config = CommonConfig()):
     self.nshape = nshape
     self.nneurons = int(np.prod(nshape)) # Number of neurons
+    self.shape = self.nshape
+    self.size = self.nneurons
     if config.coor:
       coor = config.coor
       if len(coor) > 0: self._x = clspt.Variable( np.array(coor[0]).astype(np.float32), read_only = True )
@@ -76,7 +78,7 @@ class NeuronGroup:
     if name[0:4] == "temp":
       idx = name[4:]
       if not idx in self._temps: self._temps[idx] = clspt.Variable( shape=self.shape, dtype=np.float32 )
-        return self._temps[idx]
+      return self._temps[idx]
     return object.__getattr__(self, name)
 
   def step(self, t, dt):

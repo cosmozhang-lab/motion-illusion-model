@@ -3,8 +3,9 @@
 import numpy as np
 import largescale.src.support.cl_support as clspt
 from largescale.src.support.common import CommonConfig
-from largescale.src.neuron.program import chain2
+from largescale.src.neuron.neuron.program import chain2
 from largescale.src.support.convolution import Conv2DKernel
+from largescale.src.support.common import ValuePoolSpec, ValuePool
 import program
 
 
@@ -35,16 +36,20 @@ class ConnectivityPool:
 class Connection:
   def __init__(self, config = None, **kwargs):
     if config is None: config = CommonConfig(kwargs)
-    self.tau_rise = config.get("tau_rise", 0.0) # Rising time constant
-    self.tau_damp = config.get("tau_damp", 0.0) # Damping time constant
+    self.tau_rise = config.get("tau_rise", 0.0) # Rising time constants
+    self.tau_damp = config.get("tau_damp", 0.0) # Damping time constants
     self.input = config.get("input", None) # Input neuron group
     self.shape = config.get("shape", None) # shape
+    self.tau_rise_pool = config.get("tau_rise_pool", ValuePool([self.tau_rise], np.zeros(self.shape)))
+    self.tau_damp_pool = config.get("tau_damp_pool", ValuePool([self.tau_damp], np.zeros(self.shape)))
     self.connectivity_pool = config.get("connectivity_pool", None) # connectivity pool
     if not isinstance(self.connectivity_pool, ConnectivityPool): self.connectivity_pool = ConnectivityPool(self.connectivity_pool)
     self.iconnectivities = config.get("iconnectivities", None) # indexes of connectivities to use
     if not isinstance(self.iconnectivities, clspt.Variable): self.iconnectivities = clspt.Variable(self.iconnectivities, read_only=True)
     self.kernel = config.get("kernel", None) # connection kernel
     if not isinstance(self.kernel, Conv2DKernel): self.kernel = Conv2DKernel(self.kernel)
+    self.connection_map = config.get("connection_map", None) # if this is set, only neurons with same map index will be connected
+    if self.connection_map and not isinstance(self.connection_map, clspt.Variable): self.connection_map = clspt.Variable(self.connection_map, read_only=True)
     self.g = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance
     self.s = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance relaxation
   def step(self, t, dt):
@@ -54,74 +59,12 @@ class Connection:
       ispk = self.input.ispikes.buf_host[i_nspikes]
       if tspk > t and tspk <= t + dt:
         if tspk > last_t:
-          chain2(self.g, self.s, self.tau_rise, self.tau_damp, tspk - last_t, update=True)
-        input(self.s, ispk, self.kernel, self.connectivity_pool, self.iconnectivities, self.tau_rise, update=True)
+          chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, tspk - last_t, update=True)
+        input(self.s, ispk, self.kernel, self.connectivity_pool, self.iconnectivities, self.connection_map, self.tau_rise_pool, update=True)
         last_t = tspk
     if t + dt > last_t:
-      chain2(self.g, self.s, self.tau_rise, self.tau_damp, t + dt - last_t, update=True)
+      chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, t + dt - last_t, update=True)
       last_t = t + dt
-
-
-
-
-"""
-Calcuate the conductance decaying process with spike input.
-This process do involve spike inputs,
-which is different from `chain2` in `neuron/program.cl`.
-The process can be expressed as ODEs:
-    tau_damp * dg/dt = - g + s
-    tau_rise * ds/dt = - s + sum( delta(t - t_spike) )
-@Remark: I don't think this is necessary. As we can use
-chain2 without input, just add `amp` / tau_r to `s` on each
-spike. This does make sense. The process is:
-    `chain2` on `t` to `t_spike_1`
-    `s` = `s` + `amp` / `tau_r`
-    `chain2` on `t_spike_1` to `t_spike_2`
-    `s` = `s` + `amp` / `tau_r`
-    ...
-    `chain2` on `t_spike_last` to `t + dt`
-@param g:                 [Variable]<float> the conductances
-@param s:                 [Variable]<float> the relaxation items (ds/dt receives the spike pulse directly)
-@param ispike:            [int] which neuron spiked
-@param kernel:            [Conv2DKernel] the input mapping kernel
-@param connectivity_pool: [ConnectivityPool] the input connectivity mapping pool
-@param iconnectivities:   [Variable]<int> indexes of the connectivity mapping to use
-@param tau_rise:          [float] time constance of conductance rising
-@param tau_damp:          [float] time constance of conductance damping
-@param dt:                [float] delta time
-@kwarg queue:             [CommandQueue]
-@kwarg update:            [Boolean] whether to update the variables immediately
-[WARNING] This function updates the Variable buffer automatically!
-"""
-def chain2_with_input(g, s, ispike, kernel, connectivity_pool, iconnectivities, tau_rise, tau_damp, dt, queue=None, update=True):
-  if queue is None: queue = clspt.queue()
-  assert(g.shape == s.shape, "g and s must have the same shape")
-  assert(g.shape == iconnectivities.shape, "g and iconnectivities must have the same shape")
-  nneurons = g.size
-  program.kernel_chain2_with_input(queue, (nneurons,), None,
-    g.shape[0],
-    g.shape[1],
-    ispike,
-    kernel.shape[0],
-    kernel.shape[1],
-    kernel.kernel_dev,
-    iconnectivities.buf_dev,
-    connectivity_pool.cnct_shapes_dev,
-    connectivity_pool.cncts_dev,
-    g.buf_dev,
-    g.buf_swp,
-    s.buf_dev,
-    s.buf_swp,
-    tau_rise,
-    tau_damp,
-    dt,
-    np.exp(-dt / tau_rise),
-    np.exp(-dt / tau_damp)
-  )
-  if update:
-    g.update(queue)
-    s.update(queue)
-
 
 
 
@@ -150,7 +93,7 @@ The process is described as:
 @kwarg update:            [Boolean] whether to update the variables immediately
 [WARNING] This function updates the Variable buffer automatically!
 """
-def input(s, ispike, kernel, connectivity_pool, iconnectivities, tau_rise, queue=None, update=True):
+def input(s, ispike, kernel, connectivity_pool, iconnectivities, connection_map, tau_rise_pool, queue=None, update=True):
   if queue is None: queue = clspt.queue()
   assert(s.shape == iconnectivities.shape, "s and iconnectivities must have the same shape")
   nneurons = s.size
@@ -164,9 +107,11 @@ def input(s, ispike, kernel, connectivity_pool, iconnectivities, tau_rise, queue
     iconnectivities.buf_dev,
     connectivity_pool.cnct_shapes_dev,
     connectivity_pool.cncts_dev,
+    connection_map.buf_dev,
     s.buf_dev,
     s.buf_swp,
-    tau_rise
+    tau_rise_pool.buf,
+    tau_rise_pool.spec.buf
   )
   if update:
     s.update(queue)

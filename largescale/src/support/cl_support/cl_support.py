@@ -182,7 +182,7 @@ class CLProgram:
     re_comment = re.compile(r"\/\/.*$")
     for i in xrange(len(lines)):
       lines[i] = re_comment.sub("", lines[i])
-    code = "".join(lines)
+    code = "\n".join(lines)
     in_comment = False
     comment_pos = 0
     comments = []
