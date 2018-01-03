@@ -104,6 +104,14 @@ class PinwheelNetwork:
     config.firing_rate_noisy_inh_gaba2 = config.fetch("firing_rate_noisy_inh_gaba2", 0.20)
     config.tau_rise_noisy_inh_gaba2 = config.fetch("tau_rise_noisy_inh_gaba2", 0.00167)
     config.tau_damp_noisy_inh_gaba2 = config.fetch("tau_damp_noisy_inh_gaba2", 0.00167)
+    config.tau_rise_lgn_exc_on = config.fetch("tau_rise_lgn_exc_on", 0.0)
+    config.tau_damp_lgn_exc_on = config.fetch("tau_damp_lgn_exc_on", 0.0)
+    config.tau_rise_lgn_exc_off = config.fetch("tau_rise_lgn_exc_off", 0.0)
+    config.tau_damp_lgn_exc_off = config.fetch("tau_damp_lgn_exc_off", 0.0)
+    config.tau_rise_lgn_inh_on = config.fetch("tau_rise_lgn_inh_on", 0.0)
+    config.tau_damp_lgn_inh_on = config.fetch("tau_damp_lgn_inh_on", 0.0)
+    config.tau_rise_lgn_inh_off = config.fetch("tau_rise_lgn_inh_off", 0.0)
+    config.tau_damp_lgn_inh_off = config.fetch("tau_damp_lgn_inh_off", 0.0)
 
 
 
