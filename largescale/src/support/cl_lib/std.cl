@@ -1,5 +1,6 @@
 #define MAX(x,y) (((x) > (y)) ? (x) : (y))
 #define MIN(x,y) (((x) < (y)) ? (x) : (y))
+#define ABS(x) (((x) > 0) ? (x) : (-x))
 
 #define RAND_MAX (-1U)
 
@@ -54,6 +55,31 @@ inline float logf(float x) {
   res = res * 2 + nln10 * ln10;
   return res;
 }
+
+/**
+ * Calculate natural exponential
+ * We use: exp(x) = lim[n->inf]{ (1+x/n)^n }
+ * Here we find a n in {1,2,4,8,...} that make x/n very small,
+ * and we can then square (1+x/n) again and again for log[2]{n}
+ * times to get the result.
+ * See: http://blog.csdn.net/aaronand/article/details/50269131
+ */
+inline float expf(float x) {
+  int n = 1;
+  int nn = 0; // log[2]{n}
+  float absx = ABS(x);
+  while (absx / n > 0.001) {
+    n *= 2;
+    nn += 1;
+  }
+  float res = 1.0 + x / n;
+  for (int i = 0; i < nn; i++) {
+    res = res * res;
+  }
+  return res;
+}
+
+
 
 
 

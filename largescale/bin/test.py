@@ -205,6 +205,29 @@ def test_log():
   plt.grid(True)
   plt.show()
 
+def test_exp():
+  import numpy as np
+  import largescale.src.support.cl_support as clspt
+  import matplotlib.pyplot as plt
+  # xx = np.log(np.arange(9) - 5).astype(np.float32)
+  xx = np.linspace(-10, 10, 1000).astype(np.float32)
+  yy = np.exp(xx)
+  program = clspt.compile(code="""
+  #include <std.cl>
+  __kernel void calcexp(__global const float *x, __global float *y) {
+    int i = get_global_id(0);
+    y[i] = expf(x[i]);
+  }
+  """)
+  xxv = clspt.Variable(xx)
+  yyv = clspt.Variable(np.zeros_like(xx))
+  program.calcexp(xxv.size, xxv, yyv)
+  yyvv = yyv.fetch()
+  plt.plot(xx, yy, 'b')
+  plt.plot(xx, yyvv, 'r')
+  plt.grid(True)
+  plt.show()
+
 def test_hsv2rgb():
   import numpy as np
   from largescale.src.support.plots.colormap import hsv2rgb
@@ -227,5 +250,4 @@ def test_hsv2rgb():
   plt.colorbar()
   plt.show()
 
-
-test_model()
+test_exp()

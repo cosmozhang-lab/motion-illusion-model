@@ -23,6 +23,6 @@ class DirectConnection (Connection):
     self.stimulus.get(t, var = self.stibuf)
     conv2d(self.stibuf, self.convbuf, self.kernels, self.ikernels, update=True)
     clcom.add(self.convbuf, self.s, self.s, update=True)
-    chain2(self.g, self.s, self.tau_rise, self.tau_damp, dt, update=True)
+    chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, dt, update=True)
 
 

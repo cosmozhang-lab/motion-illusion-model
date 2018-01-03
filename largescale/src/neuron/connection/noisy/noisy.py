@@ -29,8 +29,6 @@ class NoisyConnection (Connection):
   def __init__(self, config = None, **kwargs):
     if config is None: config = CommonConfig(kwargs)
     Connection.__init__(self, config)
-    self.amp = config.get("amp", 0.0)
-    self.amp_pool = config.get("amp_pool", ValuePool([self.amp], np.zeros(self.shape)))
     self.firing_rate = config.get("firing_rate", 0.0)
     self.firing_rate_pool = config.get("firing_rate_pool", ValuePool([self.firing_rate], np.zeros(self.shape)))
     self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )

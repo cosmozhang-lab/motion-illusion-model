@@ -40,6 +40,8 @@ class Connection:
     self.tau_damp = config.get("tau_damp", 0.0) # Damping time constants
     self.input = config.get("input", None) # Input neuron group
     self.shape = config.get("shape", None) # shape
+    self.amp = config.get("amp", 1.0)
+    self.amp_pool = config.get("amp_pool", ValuePool([self.amp], np.zeros(self.shape)))
     self.tau_rise_pool = config.get("tau_rise_pool", ValuePool([self.tau_rise], np.zeros(self.shape)))
     self.tau_damp_pool = config.get("tau_damp_pool", ValuePool([self.tau_damp], np.zeros(self.shape)))
     self.connectivity_pool = config.get("connectivity_pool", None) # connectivity pool
