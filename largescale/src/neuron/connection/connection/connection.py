@@ -62,7 +62,7 @@ class Connection:
       if tspk > t and tspk <= t + dt:
         if tspk > last_t:
           chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, tspk - last_t, update=True)
-        input(self.s, ispk, self.kernel, self.connectivity_pool, self.iconnectivities, self.connection_map, self.tau_rise_pool, update=True)
+        input(self.s, ispk, self.amp_pool, self.kernel, self.connectivity_pool, self.iconnectivities, self.connection_map, self.tau_rise_pool, update=True)
         last_t = tspk
     if t + dt > last_t:
       chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, t + dt - last_t, update=True)
@@ -95,7 +95,7 @@ The process is described as:
 @kwarg update:            [Boolean] whether to update the variables immediately
 [WARNING] This function updates the Variable buffer automatically!
 """
-def input(s, ispike, kernel, connectivity_pool, iconnectivities, connection_map, tau_rise_pool, queue=None, update=True):
+def input(s, ispike, amp_pool, kernel, connectivity_pool, iconnectivities, connection_map, tau_rise_pool, queue=None, update=True):
   if queue is None: queue = clspt.queue()
   assert(s.shape == iconnectivities.shape, "s and iconnectivities must have the same shape")
   nneurons = s.size
@@ -106,6 +106,8 @@ def input(s, ispike, kernel, connectivity_pool, iconnectivities, connection_map,
     kernel.shape[0],
     kernel.shape[1],
     kernel.kernel_dev,
+    amp_pool.buf,
+    amp_pool.spec.buf,
     iconnectivities.buf_dev,
     connectivity_pool.cnct_shapes_dev,
     connectivity_pool.cncts_dev,

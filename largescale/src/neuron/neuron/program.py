@@ -24,7 +24,7 @@ kernelf_chain2 = program.chain2.kernel
 def chain2(g, s, tau_rise, tau_damp, dt, queue=None, update=True):
   assert(g.shape == s.shape, "g and s must have the same shape")
   nneuron = g.size
-  kernelf_chain2(queue, (nneuron,), None, g.buf_dev, g.buf_swp, s.buf_dev, s.buf_swp, tau_rises, tau_damps, dt, np.exp(dt/tau_rise), np.exp(dt/tau_damp))
+  kernelf_chain2(queue, (nneuron,), None, g.buf_dev, g.buf_swp, s.buf_dev, s.buf_swp, tau_rises, tau_damps, dt)
   if update:
     g.update(queue)
     s.update(queue)

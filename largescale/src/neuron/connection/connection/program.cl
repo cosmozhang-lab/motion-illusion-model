@@ -23,6 +23,7 @@
  * @param krows:       size of neuron map - rows
  * @param kcols:       size of neuron map - columns
  * @param kern:        the connection kernel
+ * @param amp:         [ValuePool]<float> amplitute pool
  * @param icncts:      index of connectivity to use in the connectivity pool
  * @param cnct_shapes: shapes of the connectivity matrixes: [rows_1, cols_1, rows_2, cols_2, ...]
  * @param cncts:       connectivity pool data
@@ -36,6 +37,8 @@ __kernel void input(
   int krows,
   int kcols,
   __global float *kern,
+  __global float *amp_pool,
+  __global float *amp_specs,
   __global int *icncts,
   __global int *cnct_shapes,
   __global float *cncts,
@@ -84,7 +87,7 @@ __kernel void input(
   if (ispkc >= left && ispkc < right && ispkr >= top && ispkr < bottom) {
     float kern_val = kern[ coor2idx2d(krows, kcols, ispkr - ktop, ispkc - kleft) ];
     float cnct_val = cnct_offset[ coor2idx2d(nrows, ncols, ispkr - ntop, ispkc - nleft) ];
-    float amp = kern_val * cnct_val;
+    float amp = kern_val * cnct_val * amp_pool[amp_specs[id]];
     float s_val = s[id];
     float tau_rise_inv = 1.0 / tau_rise;
     s[id] = s_val + tau_rise_inv * amp;

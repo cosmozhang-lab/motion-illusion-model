@@ -7,6 +7,7 @@ from largescale.src.support.common import CommonConfig
 from largescale.src.neuron.neuron.program import chain2
 from largescale.src.support.convolution import Conv2DKernelPool, conv2d
 from largescale.src.neuron.connection import Connection
+from program import convinput
 
 class DirectConnection (Connection):
   def __init__(self, config = None, **kwargs):
@@ -22,7 +23,7 @@ class DirectConnection (Connection):
   def step(self, t, dt):
     self.stimulus.get(t, var = self.stibuf)
     conv2d(self.stibuf, self.convbuf, self.kernels, self.ikernels, update=True)
-    clcom.add(self.convbuf, self.s, self.s, update=True)
+    convinput(self.s, self.amp_pool, self.convbuf, self.tau_rise_pool, update=True)
     chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, dt, update=True)
 
 

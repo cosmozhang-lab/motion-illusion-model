@@ -250,4 +250,4 @@ def test_hsv2rgb():
   plt.colorbar()
   plt.show()
 
-test_exp()
+test_model()

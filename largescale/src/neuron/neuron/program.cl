@@ -1,3 +1,5 @@
+#include <std.cl>
+
 /* 
  * Calcuate the conductance decaying process.
  * This process do not involve spike inputs,
@@ -11,8 +13,6 @@
  * @param tau_rise: time constance of conductance rising
  * @param tau_damp: time constance of conductance damping
  * @param dt:       delta time
- * @param exp_rise: exp( -dt / tau_rise ). This should be computed on CPU for better precision
- * @param exp_damp: exp( -dt / tau_damp ). This should be computed on CPU for better precision
  */
 __kernel void chain2(
   __global float *g_previous, // read buffer
@@ -23,15 +23,15 @@ __kernel void chain2(
   __global int *tau_rise_specs,
   __global float *tau_damp_pool,
   __global int *tau_damp_specs,
-  float dt,
-  float exp_rise,
-  float exp_damp)
+  float dt)
 {
   int i = get_global_id(0);
   float g_val = g_previous[i];
   float s_val = s_previous[i];
   float tau_rise = tau_rise_pool[tau_rise_specs[i]];
   float tau_damp = tau_damp_pool[tau_damp_specs[i]];
+  float exp_rise = expf(dt/tau_rise);
+  float exp_damp = expf(dt/tau_damp);
   //float tr = dt / tau_rise;
   //float etr = exp_rise;
   //float td = dt / tau_damp;
