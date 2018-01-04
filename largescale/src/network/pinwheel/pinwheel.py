@@ -3,6 +3,7 @@ from largescale.src.support.common import CommonConfig
 from largescale.src.neuron import V1DirectNeuronGroup, T_EXC, T_INH
 from largescale.src.support.geometry import gen_coordinates
 from largescale.src.support.geometry.gabor import make_gabor
+import largescale.src.support.cl_support as clspt
 
 class PinwheelNetwork:
   def __init__(self, config = CommonConfig()):
@@ -106,16 +107,19 @@ class PinwheelNetwork:
     config.tau_rise_noisy_inh_gaba2 = config.fetch("tau_rise_noisy_inh_gaba2", 0.00167)
     config.tau_damp_noisy_inh_gaba2 = config.fetch("tau_damp_noisy_inh_gaba2", 0.00167)
     # LGN connections for V1
-    config.lgn_kernels_on = config.fetch("lgn_kernels_on", None)
-    config.lgn_ikernels_on = config.fetch("lgn_ikernels_on", None)
+    ikernels_lgn = clspt.Variable(self.iclusters)
+    kernels_lgn_on = [np.minimum(kern, 0.0) for kern in self.gabor_kernels]
+    kernels_lgn_off = [np.maximum(kern, 0.0) for kern in self.gabor_kernels]
+    config.lgn_kernels_on = config.fetch("lgn_kernels_on", kernels_lgn_on)
+    config.lgn_ikernels_on = config.fetch("lgn_ikernels_on", ikernels_lgn)
     config.amp_lgn_on_pos = config.fetch("amp_lgn_on_pos", 1.0)
     config.tau_rise_lgn_on_pos = config.fetch("tau_rise_lgn_on_pos", 0.014)
     config.tau_damp_lgn_on_pos = config.fetch("tau_damp_lgn_on_pos", 0.014)
     config.amp_lgn_on_neg = config.fetch("amp_lgn_on_neg", 1.0)
     config.tau_rise_lgn_on_neg = config.fetch("tau_rise_lgn_on_neg", 0.056)
     config.tau_damp_lgn_on_neg = config.fetch("tau_damp_lgn_on_neg", 0.056)
-    config.lgn_kernels_off = config.fetch("lgn_kernels_off", None)
-    config.lgn_ikernels_off = config.fetch("lgn_ikernels_off", None)
+    config.lgn_kernels_off = config.fetch("lgn_kernels_off", kernels_lgn_off)
+    config.lgn_ikernels_off = config.fetch("lgn_ikernels_off", ikernels_lgn)
     config.amp_lgn_off_pos = config.fetch("amp_lgn_off_pos", 1.0)
     config.tau_rise_lgn_off_pos = config.fetch("tau_rise_lgn_off_pos", 0.014 * 0.036 / 0.056)
     config.tau_damp_lgn_off_pos = config.fetch("tau_damp_lgn_off_pos", 0.014 * 0.036 / 0.056)
