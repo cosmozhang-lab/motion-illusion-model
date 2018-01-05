@@ -38,7 +38,7 @@ __kernel void input(
   int kcols,
   __global float *kern,
   __global float *amp_pool,
-  __global float *amp_specs,
+  __global int *amp_specs,
   __global int *icncts,
   __global int *cnct_shapes,
   __global float *cncts,

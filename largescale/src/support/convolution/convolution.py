@@ -1,10 +1,13 @@
 import numpy as np
 import pyopencl as cl
 import largescale.src.support.cl_support as clspt
+from largescale.src.support.cl_support.value_pool import ValuePoolSpec
 import os
 
 thisdir = os.path.split(os.path.realpath(__file__))[0]
 program = clspt.compile( os.path.join(thisdir, "convolution.cl") )
+
+Conv2DKernelPoolSpec = ValuePoolSpec
 
 class Conv2DKernel:
   def __init__(self, init):
@@ -66,8 +69,8 @@ def conv2d(input_map, output_map, kernel_pool, ikernels = None, queue = None, up
     queue = clspt.queue()
   if not (input_map.shape == output_map.shape and input_map.shape == ikernels.shape):
     raise ValueError("The size of input, output and ikernels must be equal")
-  if isinstance(ikernels, np.ndarray):
-    ikernels = clspt.Variable(ikernels, read_only = True)
+  if not isinstance(ikernels, Conv2DKernelPoolSpec):
+    ikernels = Conv2DKernelPoolSpec(ikernels)
   if isinstance(kernel_pool, Conv2DKernelPool):
     pass
   elif isinstance(kernel_pool, Conv2DKernel):

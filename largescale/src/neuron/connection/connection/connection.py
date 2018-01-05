@@ -45,13 +45,13 @@ class Connection:
     self.tau_rise_pool = config.get("tau_rise_pool", ValuePool([self.tau_rise], np.zeros(self.shape)))
     self.tau_damp_pool = config.get("tau_damp_pool", ValuePool([self.tau_damp], np.zeros(self.shape)))
     self.connectivity_pool = config.get("connectivity_pool", None) # connectivity pool
-    if not isinstance(self.connectivity_pool, ConnectivityPool): self.connectivity_pool = ConnectivityPool(self.connectivity_pool)
+    if not self.connectivity_pool is None and not isinstance(self.connectivity_pool, ConnectivityPool): self.connectivity_pool = ConnectivityPool(self.connectivity_pool)
     self.iconnectivities = config.get("iconnectivities", None) # indexes of connectivities to use
-    if not isinstance(self.iconnectivities, clspt.Variable): self.iconnectivities = clspt.Variable(self.iconnectivities, read_only=True)
+    if not self.iconnectivities is None and not isinstance(self.iconnectivities, clspt.Variable): self.iconnectivities = clspt.Variable(self.iconnectivities, read_only=True)
     self.kernel = config.get("kernel", None) # connection kernel
-    if not isinstance(self.kernel, Conv2DKernel): self.kernel = Conv2DKernel(self.kernel)
+    if not self.kernel is None and not isinstance(self.kernel, Conv2DKernel): self.kernel = Conv2DKernel(self.kernel)
     self.connection_map = config.get("connection_map", None) # if this is set, only neurons with same map index will be connected
-    if self.connection_map and not isinstance(self.connection_map, clspt.Variable): self.connection_map = clspt.Variable(self.connection_map, read_only=True)
+    if not self.connection_map is None and not isinstance(self.connection_map, clspt.Variable): self.connection_map = clspt.Variable(self.connection_map, read_only=True)
     self.g = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance
     self.s = clspt.Variable( np.zeros(self.shape).astype(np.float32) ) # conductance relaxation
   def step(self, t, dt):

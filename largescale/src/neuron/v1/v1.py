@@ -8,7 +8,8 @@ import largescale.src.support.cl_common as clcom
 from program import rk2params
 from largescale.src.neuron.neuron.program import rk2voltage
 from largescale.src.support.common import CommonConfig
-from largescale.src.neuron.connection import NoisyConnection
+from largescale.src.neuron.connection.noisy import NoisyConnection
+from largescale.src.neuron.connection.direct import DirectConnection
 from largescale.src.support.cl_support import ValuePoolSpec, ValuePool
 
 # V1 neuron group that directly receive stimulus (skipped LGN)
@@ -33,8 +34,8 @@ class V1DirectNeuronGroup (NeuronGroup):
   #     tau_rise_nmda: the time constant of conductance rising for nmda
   #     tau_damp_nmda: the time constant of conductance damping for nmda
   #     g_leak: the leaking conductance as a constance
-  def __init__(self, nshape, config=None):
-    NeuronGroup.__init__(self, nshape, config = CommonConfig())
+  def __init__(self, config=CommonConfig()):
+    NeuronGroup.__init__(self, config=config)
     self.stimulus = config.fetch("stimulus")
     self.v_exc = config.fetch("v_exc", 0.0)
     self.v_inh = config.fetch("v_inh", 0.0)
@@ -150,7 +151,7 @@ class V1DirectNeuronGroup (NeuronGroup):
 
   def step(self, t, dt):
     NeuronGroup.step(self, t, dt)
-    rk2params(self.lgn_on_pos.g, self.lgn_on_neg.g, self.lgn_off_pos.g, self.lgn_off_neg.g, self.noisy_gaba1, self.noisy_gaba2, self.noisy_nmda, self.noisy_ampa, self.fgaba_noise, slef.fnmda_noise, self.alpha0, self.beta0)
+    rk2params(self.lgn_on_pos.g, self.lgn_on_neg.g, self.lgn_off_pos.g, self.lgn_off_neg.g, self.noisy_gaba1.g, self.noisy_gaba2.g, self.noisy_nmda.g, self.noisy_ampa.g, self.fgaba_noise, self.fnmda_noise, self.v_exc, self.v_inh, self.alpha0, self.beta0)
     self.lgn_on_pos.step(t, dt)
     self.lgn_on_neg.step(t, dt)
     self.lgn_off_pos.step(t, dt)
@@ -159,7 +160,7 @@ class V1DirectNeuronGroup (NeuronGroup):
     self.noisy_gaba1.step(t, dt)
     self.noisy_ampa.step(t, dt)
     self.noisy_gaba2.step(t, dt)
-    rk2params(self.lgn_on_pos.g, self.lgn_on_neg.g, self.lgn_off_pos.g, self.lgn_off_neg.g, self.noisy_gaba1, self.noisy_gaba2, self.noisy_nmda, self.noisy_ampa, self.fgaba_noise, slef.fnmda_noise, self.alpha1, self.beta1)
+    rk2params(self.lgn_on_pos.g, self.lgn_on_neg.g, self.lgn_off_pos.g, self.lgn_off_neg.g, self.noisy_gaba1.g, self.noisy_gaba2.g, self.noisy_nmda.g, self.noisy_ampa.g, self.fgaba_noise, self.fnmda_noise, self.v_exc, self.v_inh, self.alpha1, self.beta1)
     rk2voltage(self.v, self.tspikes, self.trefs, self.alpha0, self.beta0, self.alpha1, self.beta1, self.v_thre, self.v_reset, t, dt)
 
 

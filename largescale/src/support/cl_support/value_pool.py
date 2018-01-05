@@ -35,11 +35,15 @@ class ValuePoolSpec:
       self.var = spec
     else:
       self.var = Variable( np.array(spec).astype(np.int32), read_only=True )
+    self.shape = self.var.shape
   @property
   def spec(self):
     return self.var.buf_host
   @property
   def buf(self):
+    return self.var.buf_dev
+  @property
+  def buf_dev(self):
     return self.var.buf_dev
 
 # Value pool
@@ -64,4 +68,7 @@ class ValuePool:
     return self.var.buf_host
   @property
   def buf(self):
+    return self.var.buf_dev
+  @property
+  def buf_dev(self):
     return self.var.buf_dev

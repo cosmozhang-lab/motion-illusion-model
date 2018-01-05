@@ -6,6 +6,12 @@ sys.path.append( os.path.join(thisdir, "../..") )
 
 from largescale.src.support.common import CommonConfig
 
+# If ipython interface exists, import it
+try:
+  from IPython.display import display
+  from IPython.core.pylabtools import figsize, getfigs
+except ImportError, e:
+  pass
 
 def test_v1():
   from largescale.src.v1 import V1DirectNeuronGroup
@@ -176,12 +182,18 @@ def test_model_hypcol():
   plt.show()
 
 def test_model():
-  from largescale.src.neuron import V1DirectNeuronGroup, T_E, T_I
   from largescale.src.network import PinwheelNetwork
   import matplotlib.pyplot as plt
-  from largescale.src.support.plots.colormap import circle_colormap
-  from largescale.src.support.plots.colormap import hsv2rgb
   import numpy as np
+  net = PinwheelNetwork()
+  dt = 0.0001
+  tt = np.arange(1000).astype(np.float32) * dt
+  vv = np.zeros_like(tt)
+  for i in xrange(len(tt)):
+    net.step(tt[i], dt)
+    vv[i] = net.v1.v.fetch()[72,72]
+  plt.plot(tt, vv)
+  plt.show()
 
 def test_log():
   import numpy as np

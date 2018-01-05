@@ -32,8 +32,8 @@ class NoisyConnection (Connection):
     self.firing_rate = config.get("firing_rate", 0.0)
     self.firing_rate_pool = config.get("firing_rate_pool", ValuePool([self.firing_rate], np.zeros(self.shape)))
     self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
-    self.randseeds = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
+    self.randseeds = clspt.createrand(self.shape)
   def step(self, t, dt):
-    self.randseeds.fill( np.floor(np.random.random_sample(g.shape) * (clspt.RAND_MAX+1)).astype(np.float32) )
+    clspt.seedrand(self.randseeds)
     program.chain2noisy(self.g, self.s, self.tspikes, self.amp_pool, self.firing_rate_pool, self.tau_rise_pool, self.tau_damp_pool, t, dt, self.randseeds)
 

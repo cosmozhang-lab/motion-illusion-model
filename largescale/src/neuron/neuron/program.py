@@ -15,16 +15,16 @@ program = clspt.compile( os.path.join(thisdir, "program.cl") )
 #     tau_rise * ds/dt = - s + sum( delta(t - t_spike) )
 # @param g:             [Variable]<float> the conductances
 # @param s:             [Variable]<float> the relaxation items (ds/dt receives the spike pulse directly)
-# @param tau_rises:     [Variable]<float> time constance of conductance rising
-# @param tau_damps:     [Variable]<float> time constance of conductance damping
+# @param tau_rise_pool: [ValuePool]<float> time constance of conductance rising
+# @param tau_damp_pool: [ValuePool]<float> time constance of conductance damping
 # @param dt:            [float] delta time
 # @kwarg queue:         [CommandQueue]
 # @kwarg update:        [Boolean] whether to update the variables immediately
 kernelf_chain2 = program.chain2.kernel
-def chain2(g, s, tau_rise, tau_damp, dt, queue=None, update=True):
+def chain2(g, s, tau_rise_pool, tau_damp_pool, dt, queue=clspt.queue(), update=True):
   assert(g.shape == s.shape, "g and s must have the same shape")
   nneuron = g.size
-  kernelf_chain2(queue, (nneuron,), None, g.buf_dev, g.buf_swp, s.buf_dev, s.buf_swp, tau_rises, tau_damps, dt)
+  kernelf_chain2(queue, (nneuron,), None, g.buf_dev, g.buf_swp, s.buf_dev, s.buf_swp, tau_rise_pool.buf, tau_rise_pool.spec.buf, tau_damp_pool.buf, tau_damp_pool.spec.buf, dt)
   if update:
     g.update(queue)
     s.update(queue)
@@ -110,7 +110,7 @@ params (i.e. `gi`s) into four params:
 @kwarg queue:               [CommandQueue]
 @kwarg update:              [Boolean] whether to update the variables immediately
 """
-kernel_rk2voltage = program.rk2voltage
+kernel_rk2voltage = program.rk2voltage.kernel
 def rk2voltage(v, tspikes, tref_pool, alpha0, beta0, alpha1, beta1, v_thre, v_reset, t, dt, queue=None, update=True):
   queue = queue or clspt.queue()
   kernel_rk2voltage(queue, (v.size,), None, v.buf_dev, v.buf_swp, tspikes.buf_dev, tref_pool.buf, tref_pool.spec.buf, alpha0.buf_dev, beta0.buf_dev, alpha1.buf_dev, beta1.buf_dev, v_thre, v_reset, t, dt)

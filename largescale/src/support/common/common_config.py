@@ -18,3 +18,8 @@ class CommonConfig:
       return self._dict[name]
     else:
       return default
+  def get(self, name, default = None):
+    if name in self._dict:
+      return self._dict[name]
+    else:
+      return default

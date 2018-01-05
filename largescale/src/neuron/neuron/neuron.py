@@ -26,9 +26,9 @@ class NeuronGroup:
     v_thre: spike voltage threshold
     t_ref: refactory time
   """
-  def __init__(self, nshape, config = CommonConfig()):
-    self.nshape = nshape
-    self.nneurons = int(np.prod(nshape)) # Number of neurons
+  def __init__(self, config = CommonConfig()):
+    self.nshape = config.nshape
+    self.nneurons = int(np.prod(self.nshape)) # Number of neurons
     self.shape = self.nshape
     self.size = self.nneurons
     if config.coor:
@@ -39,7 +39,7 @@ class NeuronGroup:
 
     self._temps = {}
     
-    self.types = clspt.Variable( np.array(config.types).astype(np.uint8), read_only = True ) if config.types else None
+    self.types = clspt.Variable( np.array(config.types).astype(np.int32), read_only = True ) if (not config.types is None) else None
     self.v = clspt.Variable( np.zeros(self.shape).astype(np.float32) )
     self.v_reset = config.fetch("v_reset", 0.0)
     self.v_thre = config.fetch("v_thre", 0.0)

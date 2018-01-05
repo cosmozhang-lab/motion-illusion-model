@@ -278,6 +278,12 @@ class Variable:
     else:
       return self._buf_dev
   @property
+  def buf_swp(self):
+    if self.swappable:
+      return self._swp_dev
+    else:
+      return self._buf_dev
+  @property
   def buf_host(self):
     return self.fetch()
 
@@ -306,10 +312,11 @@ class Variable:
   def fill(self, src, queue = None):
     nbytes = self._buf_host.nbytes
     if isinstance(src, np.ndarray):
-      nbytes = src.nbytes
+      assert nbytes == src.nbytes, "source must be in the same size as the buffer"
+      cl.enqueue_copy(queue or get_queue(), self._buf_dev, src)
     else:
       src = np.array(src).astyle(self.dtype)
-    cl.enqueue_fill_buffer(queue or get_queue(), self._buf_dev, src, 0, nbytes)
+      cl.enqueue_fill_buffer(queue or get_queue(), self._buf_dev, src, 0, nbytes)
     self.dirty = True
 
 
@@ -397,3 +404,10 @@ def map_kernel(expr, name = None):
 
 
 RAND_MAX = 2**32-1
+
+def _gen_np_rand(shape):
+  return np.floor(np.random.random_sample(shape) * (RAND_MAX+1)).astype(np.uint32)
+def createrand(shape):
+  return Variable( _gen_np_rand(shape), auto_update=True )
+def seedrand(var, queue = None):
+  var.fill(_gen_np_rand(var.shape), queue=queue)

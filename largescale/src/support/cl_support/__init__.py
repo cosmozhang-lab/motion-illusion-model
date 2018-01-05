@@ -2,5 +2,5 @@
 
 from cl_support import context, queue, compile, map_kernel
 from cl_support import Variable
-from cl_support import RAND_MAX
+from cl_support import RAND_MAX, createrand, seedrand
 from value_pool import ValuePoolSpec, ValuePool

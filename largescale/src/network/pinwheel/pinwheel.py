@@ -64,6 +64,7 @@ class PinwheelNetwork:
       sticonfig.frequency = config.fetch("df_frequency", 0.1)
       sticonfig.speed = config.fetch("df_speed", 5)
       config.stimulus = DFStimulus(self.shape, sticonfig)
+    config.nshape = self.shape
     config.v_exc = config.fetch("v_exc", 4.67)
     config.v_inh = config.fetch("v_inh", -0.67)
     config.t_ref_exc = config.fetch("t_ref_exc", 0.003)
@@ -108,8 +109,8 @@ class PinwheelNetwork:
     config.tau_damp_noisy_inh_gaba2 = config.fetch("tau_damp_noisy_inh_gaba2", 0.00167)
     # LGN connections for V1
     ikernels_lgn = clspt.Variable(self.iclusters)
-    kernels_lgn_on = [np.minimum(kern, 0.0) for kern in self.gabor_kernels]
-    kernels_lgn_off = [np.maximum(kern, 0.0) for kern in self.gabor_kernels]
+    kernels_lgn_on = [np.minimum(kern, 0.0) for kern in gabor_kernels]
+    kernels_lgn_off = [np.maximum(kern, 0.0) for kern in gabor_kernels]
     config.lgn_kernels_on = config.fetch("lgn_kernels_on", kernels_lgn_on)
     config.lgn_ikernels_on = config.fetch("lgn_ikernels_on", ikernels_lgn)
     config.amp_lgn_on_pos = config.fetch("amp_lgn_on_pos", 1.0)
@@ -126,6 +127,11 @@ class PinwheelNetwork:
     config.amp_lgn_off_neg = config.fetch("amp_lgn_off_neg", 1.0)
     config.tau_rise_lgn_off_neg = config.fetch("tau_rise_lgn_off_neg", 0.036)
     config.tau_damp_lgn_off_neg = config.fetch("tau_damp_lgn_off_neg", 0.036)
+    # create the V1 layer
+    self.v1 = V1DirectNeuronGroup(config)
+
+  def step(self, t, dt):
+    self.v1.step(t, dt)
 
 
 
