@@ -410,4 +410,5 @@ def _gen_np_rand(shape):
 def createrand(shape):
   return Variable( _gen_np_rand(shape), auto_update=True )
 def seedrand(var, queue = None):
+  if queue is None: queue = get_queue()
   var.fill(_gen_np_rand(var.shape), queue=queue)

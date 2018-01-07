@@ -190,6 +190,7 @@ def test_model():
   tt = np.arange(1000).astype(np.float32) * dt
   vv = np.zeros_like(tt)
   for i in xrange(len(tt)):
+    print "step %d" % i
     net.step(tt[i], dt)
     vv[i] = net.v1.v.fetch()[72,72]
   plt.plot(tt, vv)
