@@ -34,6 +34,7 @@ class NoisyConnection (Connection):
     self.tspikes = clspt.Variable( np.zeros(self.shape).astype(np.float32), auto_update = True )
     self.randseeds = clspt.createrand(self.shape)
   def step(self, t, dt):
-    clspt.seedrand(self.randseeds)
-    program.chain2noisy(self.g, self.s, self.tspikes, self.amp_pool, self.firing_rate_pool, self.tau_rise_pool, self.tau_damp_pool, t, dt, self.randseeds)
+    # clspt.sync()
+    # clspt.seedrand(self.randseeds)
+    program.chain2noisy(self.g, self.s, self.tspikes, self.amp_pool, self.firing_rate_pool, self.tau_rise_pool, self.tau_damp_pool, t, dt, self.randseeds, update=True)
 

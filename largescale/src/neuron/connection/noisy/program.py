@@ -1,4 +1,5 @@
 import numpy as np
+import pyopencl as cl
 import largescale.src.support.cl_support as clspt
 from largescale.src.support.common import CommonConfig
 import os

@@ -31,6 +31,22 @@ def get_queue(name=None):
   return _queues[name]
 queue = get_queue
 
+_events = {}
+def _get_event_list(queue=None):
+  if queue is None: queue = get_queue()
+  if not queue in _events: _events[queue] = []
+  return _events[queue]
+def push_event(event, queue=None):
+  if queue is None: queue = get_queue()
+  if not queue in _events: _events[queue] = []
+  _events[queue].append(event)
+def sync(queue=None):
+  if queue is None: queue = get_queue()
+  eventlist = _get_event_list(queue)
+  if len(eventlist) > 0:
+    cl.enqueue_barrier(queue, wait_for=eventlist)
+    _events[queue] = []
+
 class CLKernelArgMeta:
   def __init__(self, name, **kwargs):
     if "typestr" in kwargs:
@@ -106,11 +122,21 @@ class CLKernelArgMeta:
     else:
       return self.dtype
 
+class CLNativeKernel:
+  def __init__(self, kernel):
+    self.kernel = kernel
+  def __call__(self, *args):
+    queue = args[0]
+    event = apply(self.kernel, args)
+    push_event(event, queue=queue)
+    return event
+
 class CLKernel:
   def __init__(self, kernel, arg_metas = []):
-    self.kernel = kernel
+    kernel.set_scalar_arg_dtypes([arg.scalar_type for arg in arg_metas])
+    self.kernel = CLNativeKernel(kernel)
+    # self.kernel = kernel
     self.arg_metas = arg_metas
-    self.kernel.set_scalar_arg_dtypes([arg.scalar_type for arg in arg_metas])
   def __call__(self, *args, **kwargs):
     size = args[0]
     args = args[1:]
@@ -233,10 +259,10 @@ def compile(filename = None, code = None):
 
 
 class Variable:
-  def __init__(self, init=None, shape=None, dtype=None, read_only=False, auto_update=False):
+  def __init__(self, init=None, shape=None, dtype=None, read_only=False, auto_update=True):
     ctx = context()
     self.readonly = read_only
-    self.swappable = (not read_only) or (not auto_update)
+    self.swappable = (not read_only) and (not auto_update)
     mode = mf.READ_ONLY if read_only else mf.READ_WRITE
     if not init is None:
       self._buf_host = init
@@ -315,7 +341,7 @@ class Variable:
       assert nbytes == src.nbytes, "source must be in the same size as the buffer"
       cl.enqueue_copy(queue or get_queue(), self._buf_dev, src)
     else:
-      src = np.array(src).astyle(self.dtype)
+      src = np.array(src).astype(self.dtype)
       cl.enqueue_fill_buffer(queue or get_queue(), self._buf_dev, src, 0, nbytes)
     self.dirty = True
 

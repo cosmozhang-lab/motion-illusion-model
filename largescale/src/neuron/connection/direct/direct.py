@@ -22,6 +22,7 @@ class DirectConnection (Connection):
     self.convbuf = clspt.Variable( np.zeros(self.stimulus.size).astype(np.float32), auto_update=True )
   def step(self, t, dt):
     self.stimulus.get(t, var = self.stibuf)
+    # if True or t < 2 * dt:
     conv2d(self.stibuf, self.convbuf, self.kernels, self.ikernels, update=True)
     convinput(self.s, self.amp_pool, self.convbuf, self.tau_rise_pool, update=True)
     chain2(self.g, self.s, self.tau_rise_pool, self.tau_damp_pool, dt, update=True)

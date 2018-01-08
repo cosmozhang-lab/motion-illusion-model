@@ -51,7 +51,7 @@ class ValuePoolSpec:
 #   buf:   [Buffer]<float> buffer on device
 #   spec:  [ValuePoolSpec] the spec along with this pool
 class ValuePool:
-  def __init__(self, values, spec = None):
+  def __init__(self, values, spec = None, dtype=np.float32):
     self.spec = None
     if not spec is None:
       if isinstance(spec, ValuePoolSpec):
@@ -60,8 +60,10 @@ class ValuePool:
         self.spec = ValuePoolSpec(spec)
     if isinstance(values, Variable):
       self.var = values
+    elif isinstance(values, np.ndarray):
+      self.var = Variable( values, read_only=True )
     else:
-      self.var = Variable( np.array(values), read_only=True )
+      self.var = Variable( np.array(values).astype(dtype), read_only=True )
   
   @property
   def values(self):

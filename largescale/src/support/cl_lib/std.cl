@@ -2,7 +2,19 @@
 #define MIN(x,y) (((x) < (y)) ? (x) : (y))
 #define ABS(x) (((x) > 0) ? (x) : (-x))
 
+#define EPS (1.1920929e-07)
+
 #define RAND_MAX (-1U)
+
+/**
+ * Compare two floats within a toleratable error
+ * range. Returns true if they are almostly equal.
+ */
+inline bool almost_equal(float a, float b) {
+  float delta = a - b;
+  if (delta > -EPS && delta < EPS) return true;
+  else return false;
+}
 
 /**
  * Random generator
@@ -36,7 +48,6 @@ inline unsigned int rand(unsigned int seed) {
  */
 inline float logf(float x) {
   const float ln10 = 2.30258509299404609679094392;
-  const float eps = 0.000000000000000000000000001;
   int nln10 = 0;
   while (x > 10.0) {
     x = x / 10.0;
@@ -50,7 +61,7 @@ inline float logf(float x) {
     res += t / k;
     k += 2;
     t = t * t02;
-    if (t < eps && t > -eps) break;
+    if (t < EPS && t > -EPS) break;
   }
   res = res * 2 + nln10 * ln10;
   return res;

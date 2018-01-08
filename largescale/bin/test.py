@@ -6,12 +6,27 @@ sys.path.append( os.path.join(thisdir, "../..") )
 
 from largescale.src.support.common import CommonConfig
 
+nodis = "MPL_NODIS" in os.environ
+
+import matplotlib
+
+if nodis:
+  matplotlib.use("agg")
+
+import matplotlib.pyplot as plt
+
 # If ipython interface exists, import it
 try:
   from IPython.display import display
   from IPython.core.pylabtools import figsize, getfigs
 except ImportError, e:
   pass
+
+def show_fig():
+  if nodis:
+    plt.savefig("/var/www/html/pylab/example.svg")
+  else:
+    plt.show()
 
 def test_v1():
   from largescale.src.v1 import V1DirectNeuronGroup
@@ -138,7 +153,7 @@ def test_conv2d():
   imout = imout.astype(np.uint8)
   # cv2.imwrite("/home/share/work/outputs/testimg_out.jpg", imout)
   plt.imshow(imout)
-  plt.show()
+  show_fig()
 
 def test_map_kernel():
   import largescale.src.support.cl_support as clspt
@@ -179,7 +194,7 @@ def test_model_hypcol():
   im = np.stack([imr,img,imb], axis=2)
   # cv2.imwrite("/home/share/work/outputs/model_test.tiff", (im*255.0).astype(np.uint8))
   plt.imshow(im)
-  plt.show()
+  show_fig()
 
 def test_model():
   from largescale.src.network import PinwheelNetwork
@@ -187,14 +202,58 @@ def test_model():
   import numpy as np
   net = PinwheelNetwork()
   dt = 0.0001
-  tt = np.arange(1000).astype(np.float32) * dt
+  tt = np.arange(100).astype(np.float32) * dt
   vv = np.zeros_like(tt)
+  gg_lgnonp = np.zeros_like(tt)
+  gg_lgnonn = np.zeros_like(tt)
+  gg_lgnofp = np.zeros_like(tt)
+  gg_lgnofn = np.zeros_like(tt)
+  gg_nen = np.zeros_like(tt)
+  gg_nea = np.zeros_like(tt)
+  gg_ni1 = np.zeros_like(tt)
+  gg_ni2 = np.zeros_like(tt)
+  aa0 = np.zeros_like(tt)
+  bb0 = np.zeros_like(tt)
+  aa1 = np.zeros_like(tt)
+  bb1 = np.zeros_like(tt)
   for i in xrange(len(tt)):
     print "step %d" % i
     net.step(tt[i], dt)
     vv[i] = net.v1.v.fetch()[72,72]
-  plt.plot(tt, vv)
-  plt.show()
+    # gg_lgnonp[i] = net.v1.lgn_on_pos.g.fetch()[72,72]
+    # gg_lgnonn[i] = net.v1.lgn_on_neg.g.fetch()[72,72]
+    # gg_lgnofp[i] = net.v1.lgn_off_pos.g.fetch()[72,72]
+    # gg_lgnofn[i] = net.v1.lgn_off_neg.g.fetch()[72,72]
+    aa0[i] = net.v1.alpha0.fetch()[72,72]
+    aa1[i] = net.v1.alpha1.fetch()[72,72]
+    bb0[i] = net.v1.beta0.fetch()[72,72]
+    bb1[i] = net.v1.beta1.fetch()[72,72]
+  # plt.subplot(2,2,1)
+  # plt.plot(tt, gg_lgnonp)
+  # plt.title("gg_lgnonp")
+  # plt.subplot(2,2,2)
+  # plt.plot(tt, gg_lgnonn)
+  # plt.title("gg_lgnonn")
+  # plt.subplot(2,2,3)
+  # plt.plot(tt, gg_lgnofp)
+  # plt.title("gg_lgnofp")
+  # plt.subplot(2,2,4)
+  # plt.plot(tt, gg_lgnofn)
+  # plt.title("gg_lgnofn")
+  plt.subplot(2,2,1)
+  plt.plot(tt, aa0)
+  plt.title("aa0")
+  plt.subplot(2,2,3)
+  plt.plot(tt, aa1)
+  plt.title("aa1")
+  plt.subplot(2,2,2)
+  plt.plot(tt, bb0)
+  plt.title("bb0")
+  plt.subplot(2,2,4)
+  plt.plot(tt, bb1)
+  plt.title("bb1")
+  plt.plot(tt[:i+1], vv[:i+1])
+  show_fig()
 
 def test_log():
   import numpy as np
@@ -216,7 +275,7 @@ def test_log():
   plt.plot(xx, yy)
   plt.plot(xx, yyvv)
   plt.grid(True)
-  plt.show()
+  show_fig()
 
 def test_exp():
   import numpy as np
@@ -239,7 +298,7 @@ def test_exp():
   plt.plot(xx, yy, 'b')
   plt.plot(xx, yyvv, 'r')
   plt.grid(True)
-  plt.show()
+  show_fig()
 
 def test_hsv2rgb():
   import numpy as np
@@ -261,6 +320,6 @@ def test_hsv2rgb():
       im[i,j,:] = hsv2rgb((h[i,j],s[i,j],v[i,j]))
   plt.imshow(im)
   plt.colorbar()
-  plt.show()
+  show_fig()
 
 test_model()

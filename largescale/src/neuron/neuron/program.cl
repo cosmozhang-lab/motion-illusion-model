@@ -30,17 +30,26 @@ __kernel void chain2(
   float s_val = s_previous[i];
   float tau_rise = tau_rise_pool[tau_rise_specs[i]];
   float tau_damp = tau_damp_pool[tau_damp_specs[i]];
-  float exp_rise = expf(dt/tau_rise);
-  float exp_damp = expf(dt/tau_damp);
-  //float tr = dt / tau_rise;
-  //float etr = exp_rise;
-  //float td = dt / tau_damp;
-  //float etd = exp_damp;
-  //float cst = tau_rise / (tau_damp - tau_rise) * (etd - etr);
-  //g[i] = g_val * etd + cst * s_val;
-  //s[i] = s_val * etr;
-  g[i] = g_val * exp_damp + tau_rise * (exp_damp - exp_rise) / (tau_damp - tau_rise) * s_val;
-  s[i] = s_val * exp_rise;
+  float exp_rise = expf(-dt/tau_rise);
+  float exp_damp = expf(-dt/tau_damp);
+  /*float tr = dt / tau_rise;
+  float etr = exp_rise;
+  float td = dt / tau_damp;
+  float etd = exp_damp;
+  float cst = tau_rise / (tau_damp - tau_rise) * (etd - etr);
+  g[i] = g_val * etd + cst * s_val;
+  s[i] = s_val * etr;*/
+  if (almost_equal(tau_rise, tau_damp)) {
+    // If tau_rise is equal to tau_damp, we must consider this
+    // limiting case. In this case we calculate differently, 
+    // the method is in fact `chain1`.
+    g[i] = g_val * exp_damp + dt * exp_damp * s_val;
+    s[i] = s_val * exp_damp;
+  }
+  else {
+    g[i] = g_val * exp_damp + tau_rise * (exp_damp - exp_rise) / (tau_damp - tau_rise) * s_val;
+    s[i] = s_val * exp_rise;
+  }
 }
 
 
